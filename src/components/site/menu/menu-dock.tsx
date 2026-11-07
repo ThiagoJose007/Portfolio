@@ -8,6 +8,11 @@ import { TransitionLink } from "../transition/transition-link";
 import { pageLabel, useSitePaths } from "../version-path";
 
 const RING_RADIUS = 50;
+// Círculo fechado: canto superior direito (desktop: 32px da borda).
+const CORNER_MARGIN = 32;
+const CIRCLE_SIZE = 56;
+// Distância (x) do centro da tela até o canto superior direito.
+const cornerOffset = () => document.documentElement.clientWidth / 2 - CORNER_MARGIN - CIRCLE_SIZE / 2;
 // A partir daqui (px de scroll) o menu se fecha no círculo.
 const COLLAPSE_AT = 140;
 // Aberto manualmente no meio da página: fecha depois de rolar isso.
@@ -37,10 +42,12 @@ function RingText({ text }: { text: string }) {
 
 type NavLink = { label: string; href: string; active?: boolean; external?: boolean };
 
-// Menu único, sempre no topo e centralizado.
-// - Aberto: uma pílula com as páginas, que se abre para os dois lados a
-//   partir do círculo (no celular, uma lista logo abaixo dele).
-// - Fechado: só o círculo laranja, com "MENU · <página atual>" no anel.
+// Menu único, sempre no topo.
+// - Fechado: só o círculo laranja, fixo no canto superior direito, com
+//   "MENU · <página atual>" no anel.
+// - Aberto (desktop): o círculo desliza até o centro e uma pílula com as
+//   páginas se abre para os dois lados. No celular o círculo fica no canto e
+//   abre uma lista logo abaixo dele.
 // No desktop ele começa aberto no topo da página e se fecha no círculo ao
 // rolar; clicar no círculo abre/fecha a qualquer momento.
 export function MenuDock() {
@@ -54,6 +61,7 @@ export function MenuDock() {
   const mobileTl = useRef<gsap.core.Timeline | null>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
   const openedAt = useRef(0);
+  const openRef = useRef(false);
 
   const links: NavLink[] = [
     ...(pathname === home ? [] : [{ label: "Início", href: home }]),
@@ -74,20 +82,30 @@ export function MenuDock() {
 
       const mm = gsap.matchMedia();
       mm.add("(min-width: 768px)", () => {
-        desktopTl.current = gsap
+        // Fechado, o círculo fica no canto superior direito; aberto, desliza
+        // até o centro e a pílula se abre a partir dele.
+        const timeline = gsap
           .timeline({ paused: true })
-          .set([".menu-side", ".menu-pill"], { visibility: "visible" })
-          .fromTo(".menu-pill", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 0)
+          .set([".menu-side", ".menu-pill"], { visibility: "visible" }, 0.3)
+          .fromTo(".menu-pill", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 0.3)
           .fromTo(
             ".menu-side .nav-item",
             { autoAlpha: 0, y: -8 },
             { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.03 },
-            0.15,
+            0.45,
           )
           .to(".menu-ring", { autoAlpha: 0, duration: 0.25 }, 0)
           .to(".menu-bar-top", { y: 0, rotate: 45, duration: 0.35 }, 0)
           .to(".menu-bar-bottom", { y: 0, rotate: -45, duration: 0.35 }, 0);
+        desktopTl.current = timeline;
+        gsap.set(".menu-shift", { x: cornerOffset() });
+        // Largura da janela mudou: recalcula a distância até o canto.
+        const onResize = () => {
+          if (!openRef.current) gsap.set(".menu-shift", { x: cornerOffset() });
+        };
+        window.addEventListener("resize", onResize);
         return () => {
+          window.removeEventListener("resize", onResize);
           desktopTl.current = null;
         };
       });
@@ -131,12 +149,18 @@ export function MenuDock() {
   const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
-    const timeline = window.matchMedia("(min-width: 768px)").matches ? desktopTl.current : mobileTl.current;
+    const desktop = window.matchMedia("(min-width: 768px)").matches;
+    const timeline = desktop ? desktopTl.current : mobileTl.current;
+    openRef.current = open;
     if (open) {
       openedAt.current = triggerRef.current?.scroll() ?? window.scrollY;
+      // Desktop: o círculo vai do canto ao centro e a pílula se abre.
+      if (desktop) gsap.to(".menu-shift", { x: 0, duration: 0.5, ease: "power3.inOut", overwrite: true });
       timeline?.timeScale(1).play();
     } else {
       timeline?.timeScale(1.5).reverse();
+      // …e ao fechar, a pílula se recolhe e o círculo volta para o canto.
+      if (desktop) gsap.to(".menu-shift", { x: cornerOffset(), duration: 0.5, delay: 0.3, ease: "power3.inOut", overwrite: true });
     }
   }, [open]);
 
@@ -200,12 +224,12 @@ export function MenuDock() {
   };
 
   return (
-    <div ref={rootRef} className="fixed left-1/2 top-4 z-50 -translate-x-1/2 md:top-5">
-      <nav aria-label="Navegação principal" className="relative">
+    <div ref={rootRef} className="fixed right-5 top-5 z-50 md:left-1/2 md:right-auto md:w-max md:-translate-x-1/2">
+      <nav aria-label="Navegação principal" className="menu-shift relative">
         {/* Fundo da pílula (desktop): abre a partir do centro. */}
         <span className="menu-pill invisible absolute -inset-x-2 -inset-y-1 hidden rounded-full border border-cream/10 bg-[#1b1b1f]/80 backdrop-blur-xl md:block" />
 
-        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div className="relative flex items-center md:grid md:grid-cols-[1fr_auto_1fr] md:gap-2">
           <ul inert={!open} className="menu-side invisible hidden justify-end md:flex">
             {left.map(renderItem)}
           </ul>
@@ -242,9 +266,9 @@ export function MenuDock() {
         <div
           id="menu-drop"
           inert={!open}
-          className="menu-drop invisible absolute left-1/2 top-[calc(100%+18px)] w-56 -translate-x-1/2 md:hidden"
+          className="menu-drop invisible absolute right-0 top-[calc(100%+18px)] w-56 md:hidden"
         >
-          <span className="menu-drop-bg absolute inset-0 origin-top rounded-[24px] border border-cream/10 bg-[#1b1b1f]/95 backdrop-blur-xl" />
+          <span className="menu-drop-bg absolute inset-0 origin-top-right rounded-[24px] border border-cream/10 bg-[#1b1b1f]/95 backdrop-blur-xl" />
           <ul className="relative flex flex-col gap-0.5 p-2 text-center">{links.map(renderItem)}</ul>
         </div>
       </nav>
