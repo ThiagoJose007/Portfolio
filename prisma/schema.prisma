@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  summary     String
+  description String
+  coverImage  String?
+  gallery     Json     @default("[]")
+  tags        Json     @default("[]")
+  repoUrl     String?
+  liveUrl     String?
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applicationProjects ApplicationProject[]
+
+  @@map("projects")
+}
+
+model Application {
+  id           String    @id @default(uuid())
+  companyName  String
+  roleTitle    String
+  slug         String    @unique
+  introText    String
+  ctaText      String?
+  status       ApplicationStatus @default(DRAFT)
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  projects ApplicationProject[]
+
+  @@map("applications")
+}
+
+model ApplicationProject {
+  id                 String   @id @default(uuid())
+  applicationId      String
+  projectId          String
+  order              Int      @default(0)
+  customDescription  String?
+  highlighted        Boolean  @default(false)
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, projectId])
+  @@map("application_projects")
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ARCHIVED
+}
