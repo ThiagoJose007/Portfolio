@@ -5,8 +5,16 @@ import { getDefaultVersion, getVersionBySlug, trackVisit, type SiteVersion } fro
 import { Hero } from "./sections/hero";
 import { PageIntro } from "./sections/page-intro";
 import { AboutSection } from "./sections/about-section";
-import { SkillsSection } from "./sections/skills-section";
-import { CareerSection } from "./sections/career-section";
+import { AboutHero } from "./sections/about-hero";
+import { ExperienceList } from "./sections/experience-list";
+import {
+  AwardsSection,
+  BeyondSection,
+  EducationSection,
+  FreelanceSection,
+  ProcessSection,
+  SkillsGrid,
+} from "./sections/content-sections";
 import { TestimonialsSection } from "./sections/testimonials-section";
 import { ContactSection } from "./sections/contact-section";
 import { NextSteps } from "./sections/next-steps";
@@ -56,29 +64,30 @@ export async function HomeView({ version, searchParams }: { version: SiteVersion
   );
 }
 
+// Sobre mim: resumo em 30s → quem sou → como trabalho → ferramentas →
+// além do trabalho → freelancer → depoimentos → contato.
 export async function AboutView({ version, searchParams }: { version: SiteVersion } & PageProps) {
   await trackVisit(version, await isPreview(searchParams));
-  const { texts, testimonials } = await getSiteContent();
+  const { testimonials, process } = await getSiteContent();
   const hasTestimonials = testimonials.items.length > 0;
   return (
     <>
-      <PageIntro
-        eyebrow="Sobre mim"
-        title={texts["page.sobre.title"]}
-        text={texts["page.sobre.text"]}
-        scene={{ shape: 3, x: 0.45, scale: 0.9 }}
-      />
+      <AboutHero />
       <AboutSection index="01" />
-      <SkillsSection index="02" />
-      {hasTestimonials && <TestimonialsSection index="03" />}
-      <ContactSection index={hasTestimonials ? "04" : "03"} afterLight={hasTestimonials} />
+      <ProcessSection index="02" steps={process} />
+      <SkillsGrid index="03" />
+      <BeyondSection index="04" />
+      <FreelanceSection />
+      {hasTestimonials && <TestimonialsSection />}
+      <ContactSection afterLight={hasTestimonials} />
     </>
   );
 }
 
+// Experiência: trajetória (escolhida por versão) → formação → prêmios → contato.
 export async function ExperienceView({ version, searchParams }: { version: SiteVersion } & PageProps) {
   await trackVisit(version, await isPreview(searchParams));
-  const { texts } = await getSiteContent();
+  const { texts, education, awards } = await getSiteContent();
   return (
     <>
       <PageIntro
@@ -87,8 +96,10 @@ export async function ExperienceView({ version, searchParams }: { version: SiteV
         text={texts["page.carreira.text"]}
         scene={{ shape: 1, x: 0.4, scale: 0.95 }}
       />
-      <CareerSection index="01" chapters={version.chapters} />
-      <ContactSection index="02" />
+      <ExperienceList index="01" experiences={version.experiences} />
+      <EducationSection index="02" items={education} />
+      <AwardsSection index="03" items={awards} />
+      <ContactSection />
     </>
   );
 }

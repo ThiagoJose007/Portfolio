@@ -3,8 +3,7 @@ import { after } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { toShowcaseProject, type ShowcaseProject } from "@/lib/projects";
-import { buildChapters, getSiteContent, toExperienceItem } from "@/lib/content/load";
-import type { CareerChapter } from "@/content/site";
+import { getSiteContent, toExperienceItem } from "@/lib/content/load";
 import type { ExperienceItem } from "@/lib/content/types";
 
 // Uma "versão" do site é o que um visitante vê: a versão geral (servida em
@@ -20,7 +19,6 @@ export type SiteVersion = {
   hero: { eyebrow: string; title: string; intro: string; cta: string | null };
   projects: ShowcaseProject[];
   experiences: ExperienceItem[];
-  chapters: CareerChapter[];
 };
 
 const applicationInclude = {
@@ -72,7 +70,6 @@ async function buildVersion(application: ApplicationWithRelations | null): Promi
     hero,
     projects,
     experiences,
-    chapters: buildChapters(experiences, content.texts),
   };
 }
 

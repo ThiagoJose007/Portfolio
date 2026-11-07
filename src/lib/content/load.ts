@@ -2,7 +2,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import type { Experience } from "@/generated/prisma/client";
 import * as defaults from "@/content/site";
-import type { CareerChapter, SceneShape } from "@/content/site";
+import type { SceneShape } from "@/content/site";
 import { splitLines, TEXT_DEFAULTS } from "./texts";
 import type { ExperienceItem, Profile, SiteContent, SimpleItem, SocialLink } from "./types";
 
@@ -46,30 +46,6 @@ export function toExperienceItem(
     highlights: customHighlights.length > 0 ? customHighlights : toStringArray(row.highlights),
     shape: toShape(row.shape),
   };
-}
-
-// Capítulos da linha do tempo (seção Carreira): as experiências + o capítulo
-// final editável em Textos ("E agora, juntos").
-export function buildChapters(experiences: ExperienceItem[], texts: Record<string, string>): CareerChapter[] {
-  const chapters: CareerChapter[] = experiences.map((item) => ({
-    period: item.period,
-    role: item.role,
-    place: item.company,
-    title: item.headline || item.role,
-    text: item.summary,
-    shape: item.shape,
-  }));
-  if (texts["career.next.title"]?.trim()) {
-    chapters.push({
-      period: texts["career.next.period"],
-      role: texts["career.next.role"],
-      place: texts["career.next.place"],
-      title: texts["career.next.title"],
-      text: texts["career.next.text"],
-      shape: 4,
-    });
-  }
-  return chapters;
 }
 
 // Conteúdo de fábrica (src/content/site.ts), usado enquanto nada foi
@@ -194,8 +170,6 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   const texts: Record<string, string> = { ...TEXT_DEFAULTS };
   for (const row of textRows) texts[row.key] = row.value;
 
-  const chapters = buildChapters(data.experiences, texts);
-
   const { stats, skillGroups, testimonialItems, ...rest } = data;
 
   return {
@@ -209,7 +183,7 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
     },
     about: { label: texts["about.label"], manifesto: texts["about.manifesto"], stats },
     skills: { label: texts["skills.label"], title: texts["skills.title"], groups: skillGroups },
-    career: { label: texts["career.label"], title: texts["career.title"], chapters },
+    career: { label: texts["career.label"], title: texts["career.title"] },
     testimonials: { label: texts["testimonials.label"], title: texts["testimonials.title"], items: testimonialItems },
     contact: {
       label: texts["contact.label"],

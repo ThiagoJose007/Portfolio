@@ -9,7 +9,7 @@ import { useSiteContent } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 
 export function AboutSection({ index }: { index?: string }) {
-  const { about } = useSiteContent();
+  const { about, profile, texts } = useSiteContent();
   const rootRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
 
@@ -51,6 +51,18 @@ export function AboutSection({ index }: { index?: string }) {
         </p>
       </div>
 
+      {profile.bio && (
+        <div data-reveal className="mt-[10vh] grid gap-6 md:grid-cols-12">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent md:col-span-3 md:pt-1.5">
+            {texts["about.bio.label"]}
+          </p>
+          <p className="whitespace-pre-line text-lg leading-relaxed text-cream/80 md:col-span-7 md:text-xl">
+            {profile.bio}
+          </p>
+        </div>
+      )}
+
+      {about.stats.length > 0 && (
       <dl className="mt-[12vh] grid gap-px overflow-hidden rounded-3xl border border-cream/10 bg-cream/10 md:ml-[25%] md:grid-cols-3">
         {about.stats.map((stat) => (
           <div key={stat.label} data-reveal className="bg-ink p-7 md:p-9">
@@ -64,6 +76,7 @@ export function AboutSection({ index }: { index?: string }) {
           </div>
         ))}
       </dl>
+      )}
     </section>
   );
 }

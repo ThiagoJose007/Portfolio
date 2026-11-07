@@ -122,7 +122,8 @@ export function ProjectCase({
         </div>
       </div>
 
-      <div data-reveal className="mt-14 aspect-[16/9] overflow-hidden rounded-sm">
+      {/* Capa de ponta a ponta, como a abertura de um case no Behance. */}
+      <div data-reveal className="-mx-5 mt-14 aspect-[16/9] overflow-hidden md:-mx-8">
         <ProjectCover project={project} />
       </div>
 
@@ -141,7 +142,7 @@ export function ProjectCase({
               </div>
               {image && (
                 // eslint-disable-next-line @next/next/no-img-element -- imagens enviadas pelo admin
-                <img data-reveal src={image} alt="" className="w-full rounded-sm object-cover" />
+                <img data-reveal src={image} alt="" className="-mx-5 w-[calc(100%+2.5rem)] max-w-none object-cover md:-mx-8 md:w-[calc(100%+4rem)]" />
               )}
             </section>
           );

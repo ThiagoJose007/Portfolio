@@ -77,7 +77,7 @@ export function Hero({ eyebrow, title, intro, cta }: HeroProps) {
 
   return (
     <section id="inicio" ref={rootRef} className="relative flex min-h-[680px] flex-col overflow-hidden px-5 md:h-svh md:px-8">
-      <div data-hero-content className="relative flex flex-1 flex-col justify-center pb-[8vh] pt-[9vh] md:pt-[12vh]">
+      <div data-hero-content className="relative flex flex-1 flex-col justify-center pb-[8vh] pt-[16vh] md:pt-[14vh]">
         <div data-hero-fade>
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>

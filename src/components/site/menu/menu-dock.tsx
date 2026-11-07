@@ -8,8 +8,10 @@ import { TransitionLink } from "../transition/transition-link";
 import { pageLabel, useSitePaths } from "../version-path";
 
 const RING_RADIUS = 50;
-// A partir daqui (px de scroll) a navegação do topo se recolhe no círculo.
+// A partir daqui (px de scroll) o menu se fecha no círculo.
 const COLLAPSE_AT = 140;
+// Aberto manualmente no meio da página: fecha depois de rolar isso.
+const CLOSE_AFTER_SCROLL = 240;
 
 // Texto que corre pela borda do círculo: cada caractere é um <textPath> com
 // startOffset próprio, o que distribui as letras igualmente em qualquer fonte.
@@ -23,7 +25,7 @@ function RingText({ text }: { text: string }) {
         d={`M 60,60 m -${RING_RADIUS},0 a ${RING_RADIUS},${RING_RADIUS} 0 1,1 ${RING_RADIUS * 2},0 a ${RING_RADIUS},${RING_RADIUS} 0 1,1 -${RING_RADIUS * 2},0`}
       />
       {chars.map((char, i) => (
-        <text key={`${text}-${i}`} className="menu-ring-char fill-current font-mono text-[8.5px] tracking-normal">
+        <text key={`${text}-${i}`} className="menu-ring-char fill-current font-mono text-[9px] tracking-normal">
           <textPath href="#menu-ring-path" startOffset={`${(i / chars.length) * 100}%`}>
             {char}
           </textPath>
@@ -33,93 +35,93 @@ function RingText({ text }: { text: string }) {
   );
 }
 
-// Navegação:
-// - Desktop, no topo da página: pílula aberta no canto superior direito, com
-//   os nomes das páginas.
-// - Ao rolar, ela se recolhe e dá lugar ao círculo laranja (canto inferior),
-//   cujo anel diz "MENU · <página atual>". O círculo abre a mesma pílula ao
-//   lado dele.
-// - Mobile: só o círculo, que abre a lista acima dele.
+type NavLink = { label: string; href: string; active?: boolean; external?: boolean };
+
+// Menu único, sempre no topo e centralizado.
+// - Aberto: uma pílula com as páginas, que se abre para os dois lados a
+//   partir do círculo (no celular, uma lista logo abaixo dele).
+// - Fechado: só o círculo laranja, com "MENU · <página atual>" no anel.
+// No desktop ele começa aberto no topo da página e se fecha no círculo ao
+// rolar; clicar no círculo abre/fecha a qualquer momento.
 export function MenuDock() {
   const { profile } = useSiteContent();
   const { pathname, home, about, experience } = useSitePaths();
   const [open, setOpen] = useState(false);
-  const [atTop, setAtTop] = useState(true);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const openTl = useRef<gsap.core.Timeline | null>(null);
-  const topTl = useRef<gsap.core.Timeline | null>(null);
+  const desktopTl = useRef<gsap.core.Timeline | null>(null);
+  const mobileTl = useRef<gsap.core.Timeline | null>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
   const openedAt = useRef(0);
 
-  const isHome = pathname === home;
-  const links = [
-    // Sem o cabeçalho, "Início" é o caminho de volta fora da página inicial.
-    ...(isHome ? [] : [{ label: "Início", href: home, active: false }]),
-    { label: "Projetos", href: `${home}#projetos`, active: false },
+  const links: NavLink[] = [
+    ...(pathname === home ? [] : [{ label: "Início", href: home }]),
+    { label: "Projetos", href: `${home}#projetos` },
     { label: "Sobre mim", href: about, active: pathname === about },
     { label: "Experiência", href: experience, active: pathname === experience },
-    { label: "Contato", href: "#contato", active: false },
+    { label: "Contato", href: "#contato" },
+    ...(profile.cvUrl ? [{ label: "Baixar CV ↓", href: profile.cvUrl, external: true }] : []),
   ];
+  // No desktop os itens se dividem dos dois lados do círculo.
+  const half = Math.ceil(links.length / 2);
+  const left = links.slice(0, half);
+  const right = links.slice(half);
 
   const { contextSafe } = useGSAP(
     () => {
-      gsap.set(".dock", { autoAlpha: 0 });
+      gsap.to(".menu-ring", { rotate: 360, duration: 16, ease: "none", repeat: -1 });
 
-      openTl.current = gsap
-        .timeline({ paused: true })
-        .set(".dock", { autoAlpha: 1 })
-        .fromTo(".dock-bg", { scaleX: 0 }, { scaleX: 1, duration: 0.6, easeReverse: "power3.in" }, 0)
-        .fromTo(
-          ".dock .nav-item",
-          { y: 16, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.5, easeReverse: "power3.in", stagger: { each: 0.04, from: "end" } },
-          0.08,
-        )
-        .to(".menu-ring", { autoAlpha: 0, scale: 0.85, duration: 0.3 }, 0)
-        .to(".menu-disc", { scale: 0.9, duration: 0.4 }, 0)
-        .to(".menu-bar-top", { y: 0, rotate: 45, duration: 0.4 }, 0)
-        .to(".menu-bar-bottom", { y: 0, rotate: -45, duration: 0.4 }, 0);
-
-      gsap.to(".menu-ring", { rotate: 360, duration: 14, ease: "none", repeat: -1 });
-
-      // Topo (desktop): pílula visível, círculo escondido. Rolando: o inverso.
       const mm = gsap.matchMedia();
       mm.add("(min-width: 768px)", () => {
-        topTl.current = gsap
+        desktopTl.current = gsap
           .timeline({ paused: true })
+          .set([".menu-side", ".menu-pill"], { visibility: "visible" })
+          .fromTo(".menu-pill", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 0)
           .fromTo(
-            ".top-nav .nav-item",
-            { autoAlpha: 1, y: 0 },
-            { autoAlpha: 0, y: -14, duration: 0.35, stagger: { each: 0.035, from: "end" } },
-            0,
+            ".menu-side .nav-item",
+            { autoAlpha: 0, y: -8 },
+            { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.03 },
+            0.15,
           )
-          .fromTo(".top-nav-bg", { scaleX: 1 }, { scaleX: 0, duration: 0.5, ease: "power3.inOut" }, 0.1)
-          .set(".top-nav", { visibility: "hidden" })
-          .fromTo(
-            ".menu-fab",
-            { autoAlpha: 0, scale: 0.4 },
-            { autoAlpha: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" },
-            0.3,
-          );
-        topTl.current.progress((triggerRef.current?.scroll() ?? 0) < COLLAPSE_AT ? 0 : 1);
+          .to(".menu-ring", { autoAlpha: 0, duration: 0.25 }, 0)
+          .to(".menu-bar-top", { y: 0, rotate: 45, duration: 0.35 }, 0)
+          .to(".menu-bar-bottom", { y: 0, rotate: -45, duration: 0.35 }, 0);
         return () => {
-          topTl.current = null;
+          desktopTl.current = null;
+        };
+      });
+      mm.add("(max-width: 767px)", () => {
+        mobileTl.current = gsap
+          .timeline({ paused: true })
+          .set(".menu-drop", { visibility: "visible" })
+          .fromTo(".menu-drop-bg", { scaleY: 0 }, { scaleY: 1, duration: 0.45, ease: "power3.out" }, 0)
+          .fromTo(
+            ".menu-drop .nav-item",
+            { autoAlpha: 0, y: -10 },
+            { autoAlpha: 1, y: 0, duration: 0.35, stagger: 0.04 },
+            0.1,
+          )
+          .to(".menu-ring", { autoAlpha: 0, duration: 0.25 }, 0)
+          .to(".menu-bar-top", { y: 0, rotate: 45, duration: 0.35 }, 0)
+          .to(".menu-bar-bottom", { y: 0, rotate: -45, duration: 0.35 }, 0);
+        return () => {
+          mobileTl.current = null;
         };
       });
 
-      // Compara a posição diretamente (um intervalo start/end "sairia" do
-      // estado ao chegar no fim da página).
+      const desktop = window.matchMedia("(min-width: 768px)");
+      let wasAtTop: boolean | null = null;
       const sync = (self: ScrollTrigger) => {
         const y = self.scroll();
-        setAtTop(y < COLLAPSE_AT);
-        // Aberta pelo círculo: fecha ao voltar ao topo (lá a pílula do topo
-        // assume) ou depois de rolar um pouco.
-        if (y < COLLAPSE_AT || Math.abs(y - openedAt.current) > 240) setOpen(false);
+        const atTop = y < COLLAPSE_AT;
+        // Desktop: abre ao chegar no topo, fecha ao sair dele.
+        if (desktop.matches && atTop !== wasAtTop) setOpen(atTop);
+        else if (!atTop && Math.abs(y - openedAt.current) > CLOSE_AFTER_SCROLL) setOpen(false);
+        wasAtTop = atTop;
       };
       triggerRef.current = ScrollTrigger.create({ start: 0, end: "max", onUpdate: sync, onRefresh: sync });
-      setAtTop(triggerRef.current.scroll() < COLLAPSE_AT);
+      sync(triggerRef.current);
 
       return () => mm.revert();
     },
@@ -129,19 +131,12 @@ export function MenuDock() {
   const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
-    if (atTop) {
-      topTl.current?.timeScale(1.4).reverse();
-    } else {
-      topTl.current?.timeScale(1).play();
-    }
-  }, [atTop]);
-
-  useEffect(() => {
+    const timeline = window.matchMedia("(min-width: 768px)").matches ? desktopTl.current : mobileTl.current;
     if (open) {
       openedAt.current = triggerRef.current?.scroll() ?? window.scrollY;
-      openTl.current?.timeScale(1).play();
+      timeline?.timeScale(1).play();
     } else {
-      openTl.current?.timeScale(1.6).reverse();
+      timeline?.timeScale(1.5).reverse();
     }
   }, [open]);
 
@@ -153,7 +148,7 @@ export function MenuDock() {
       }
     };
     const onPointer = (event: PointerEvent) => {
-      if (open && !rootRef.current?.contains(event.target as Node)) setOpen(false);
+      if (open && window.scrollY >= COLLAPSE_AT && !rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("pointerdown", onPointer);
@@ -169,8 +164,8 @@ export function MenuDock() {
   const onButtonMove = contextSafe((event: React.PointerEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     gsap.to(".menu-magnet", {
-      x: (event.clientX - rect.left - rect.width / 2) * 0.3,
-      y: (event.clientY - rect.top - rect.height / 2) * 0.3,
+      x: (event.clientX - rect.left - rect.width / 2) * 0.25,
+      y: (event.clientY - rect.top - rect.height / 2) * 0.25,
       duration: 0.4,
     });
   });
@@ -181,80 +176,78 @@ export function MenuDock() {
   const itemClass =
     "block whitespace-nowrap rounded-full px-4 py-2.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent";
 
-  const items = (
-    <>
-      {links.map((item) => (
-        <li key={item.label} className="nav-item">
-          <TransitionLink
-            href={item.href}
-            aria-current={item.active ? "page" : undefined}
-            className={`${itemClass} ${item.active ? "bg-cream text-ink" : "text-cream hover:bg-cream/10"}`}
-          >
+  const renderItem = (item: NavLink) => {
+    const className = `${itemClass} ${
+      item.external
+        ? "text-accent hover:bg-accent hover:text-ink"
+        : item.active
+          ? "bg-cream text-ink"
+          : "text-cream hover:bg-cream/10"
+    }`;
+    return (
+      <li key={item.label} className="nav-item">
+        {item.external ? (
+          <a href={item.href} target="_blank" rel="noreferrer" className={className}>
+            {item.label}
+          </a>
+        ) : (
+          <TransitionLink href={item.href} aria-current={item.active ? "page" : undefined} className={className}>
             {item.label}
           </TransitionLink>
-        </li>
-      ))}
-      {profile.cvUrl && (
-        <li className="nav-item">
-          <a
-            href={profile.cvUrl}
-            target="_blank"
-            rel="noreferrer"
-            className={`${itemClass} border border-accent/60 text-accent hover:bg-accent hover:text-ink`}
-          >
-            Baixar CV ↓
-          </a>
-        </li>
-      )}
-    </>
-  );
+        )}
+      </li>
+    );
+  };
 
   return (
-    <div ref={rootRef}>
-      {/* Desktop, topo da página */}
-      <nav
-        aria-label="Navegação principal"
-        inert={!atTop}
-        className="top-nav fixed right-8 top-6 z-50 hidden md:block"
-      >
-        <span className="top-nav-bg absolute inset-0 origin-right rounded-[28px] border border-cream/10 bg-[#1b1b1f]/70 backdrop-blur-xl" />
-        <ul className="relative flex items-center gap-0.5 p-1.5">{items}</ul>
-      </nav>
+    <div ref={rootRef} className="fixed left-1/2 top-4 z-50 -translate-x-1/2 md:top-5">
+      <nav aria-label="Navegação principal" className="relative">
+        {/* Fundo da pílula (desktop): abre a partir do centro. */}
+        <span className="menu-pill invisible absolute -inset-x-2 -inset-y-1 hidden rounded-full border border-cream/10 bg-[#1b1b1f]/80 backdrop-blur-xl md:block" />
 
-      <div className="menu-fab fixed bottom-6 right-5 z-50 md:bottom-8 md:right-10">
-        <nav
-          id="site-dock"
-          aria-label="Menu"
-          inert={!open}
-          className="dock absolute bottom-[calc(100%+12px)] right-0 md:bottom-1/2 md:right-[calc(100%+14px)] md:translate-y-1/2"
-        >
-          <span className="dock-bg absolute inset-0 origin-right rounded-[28px] border border-cream/10 bg-[#1b1b1f]/85 backdrop-blur-xl" />
-          <ul className="relative flex flex-col items-stretch gap-0.5 p-2 md:flex-row md:items-center">{items}</ul>
-        </nav>
+        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <ul inert={!open} className="menu-side invisible hidden justify-end md:flex">
+            {left.map(renderItem)}
+          </ul>
 
-        <button
-          ref={buttonRef}
-          type="button"
-          aria-expanded={open}
-          aria-controls="site-dock"
-          aria-label={open ? "Fechar menu" : "Abrir menu"}
-          onClick={() => setOpen((value) => !value)}
-          onPointerMove={onButtonMove}
-          onPointerLeave={onButtonOut}
-          className="relative grid size-[76px] place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-cream"
-        >
-          <span className="menu-magnet absolute -inset-5 text-cream mix-blend-difference">
-            <RingText text={`MENU · ${pageLabel(pathname).toUpperCase()} · `} />
-          </span>
-          <span className="menu-magnet absolute inset-0 grid place-items-center">
-            <span className="menu-disc absolute inset-0 rounded-full bg-accent shadow-[0_10px_40px_rgba(255,95,46,0.35)]" />
-            <span className="relative block h-3 w-6">
-              <span className="menu-bar-top absolute left-0 top-1/2 block h-[2px] w-full -translate-y-[5px] bg-ink" />
-              <span className="menu-bar-bottom absolute left-0 top-1/2 block h-[2px] w-full translate-y-[3px] bg-ink" />
+          <button
+            ref={buttonRef}
+            type="button"
+            aria-expanded={open}
+            aria-controls="menu-drop"
+            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            onClick={() => setOpen((value) => !value)}
+            onPointerMove={onButtonMove}
+            onPointerLeave={onButtonOut}
+            className="relative grid size-14 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-cream"
+          >
+            <span className="menu-magnet absolute -inset-4 text-cream mix-blend-difference">
+              <RingText text={`MENU · ${pageLabel(pathname).toUpperCase()} · `} />
             </span>
-          </span>
-        </button>
-      </div>
+            <span className="menu-magnet absolute inset-0 grid place-items-center">
+              <span className="absolute inset-0 rounded-full bg-accent shadow-[0_8px_30px_rgba(255,95,46,0.35)]" />
+              <span className="relative block h-3 w-5">
+                <span className="menu-bar-top absolute left-0 top-1/2 block h-[2px] w-full -translate-y-[5px] bg-ink" />
+                <span className="menu-bar-bottom absolute left-0 top-1/2 block h-[2px] w-full translate-y-[3px] bg-ink" />
+              </span>
+            </span>
+          </button>
+
+          <ul inert={!open} className="menu-side invisible hidden md:flex">
+            {right.map(renderItem)}
+          </ul>
+        </div>
+
+        {/* Celular: lista logo abaixo do círculo. */}
+        <div
+          id="menu-drop"
+          inert={!open}
+          className="menu-drop invisible absolute left-1/2 top-[calc(100%+18px)] w-56 -translate-x-1/2 md:hidden"
+        >
+          <span className="menu-drop-bg absolute inset-0 origin-top rounded-[24px] border border-cream/10 bg-[#1b1b1f]/95 backdrop-blur-xl" />
+          <ul className="relative flex flex-col gap-0.5 p-2 text-center">{links.map(renderItem)}</ul>
+        </div>
+      </nav>
     </div>
   );
 }

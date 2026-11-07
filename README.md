@@ -129,13 +129,21 @@ uma lista nova, crie o model no Prisma e registre em `src/app/admin/conteudo/col
 
 ## Deploy (Railway)
 
-O `Dockerfile` gera a build `standalone` do Next. No Railway: crie o serviço a partir do
-repositório (Dockerfile), adicione o plugin Postgres e configure `DATABASE_URL` e
-`ADMIN_PASSWORD` nas variáveis do serviço. Rode `npx prisma migrate deploy` contra o banco
-de produção a cada deploy que traga migrations novas.
+O `Dockerfile` gera a build `standalone` do Next e, **a cada start, aplica as migrations
+pendentes** (`prisma migrate deploy`) antes de subir o site — não é preciso rodar nada à mão.
 
-**Uploads:** o container é recriado a cada deploy, então os arquivos enviados pelo admin
-precisam de um **Volume**. No serviço: *Settings → Volumes → Add Volume*, mount path
-`/data`, e a variável `UPLOAD_DIR=/data/uploads`. Os arquivos são servidos pelo próprio
-site em `/media/<arquivo>` (limite de 25 MB por arquivo). Com volume, o serviço roda com
-uma única instância; ative os backups do volume no painel, se o plano tiver.
+1. **Novo projeto:** no Railway, *New Project → Deploy from GitHub repo* e escolha este
+   repositório (e a branch que quer publicar). O Railway detecta o `Dockerfile`.
+2. **Banco:** no mesmo projeto, *+ Create → Database → PostgreSQL*.
+3. **Variáveis do serviço do site** (*Variables*):
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (referência ao banco criado acima)
+   - `ADMIN_PASSWORD` = uma senha forte
+   - `UPLOAD_DIR` = `/data/uploads`
+4. **Volume:** no serviço do site, *Settings → Volumes → Add Volume*, mount path `/data`.
+   Sem ele, fotos, capas e o CV somem a cada deploy.
+5. **Domínio:** *Settings → Networking → Generate Domain* (ou adicione o seu domínio).
+6. **Primeiro acesso:** abra `/admin` (qualquer usuário + `ADMIN_PASSWORD`), clique em
+   **Importar conteúdo atual** e substitua os textos de exemplo pelos seus dados.
+
+Com volume, o serviço roda com uma única instância (suficiente para um portfolio); ative os
+backups do volume no painel, se o seu plano tiver.

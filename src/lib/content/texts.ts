@@ -37,6 +37,25 @@ export const TEXT_GROUPS: TextGroup[] = [
     ],
   },
   {
+    title: "Página Sobre mim",
+    fields: [
+      { key: "about.tldr.title", label: "Título do resumo", default: "Resumo em *30 segundos*" },
+      { key: "about.bio.label", label: "Rótulo da bio", default: "Quem sou" },
+      { key: "process.title", label: "Título — Como eu trabalho", default: "Como eu *trabalho*" },
+      { key: "beyond.title", label: "Título — Além do trabalho", default: "Além do *trabalho*" },
+      { key: "beyond.values", label: "Coluna — valores", default: "Valores" },
+      { key: "beyond.hobbies", label: "Coluna — hobbies", default: "Fora do trabalho" },
+      { key: "beyond.goals", label: "Coluna — o que busco", default: "O que busco" },
+    ],
+  },
+  {
+    title: "Página Experiência",
+    fields: [
+      { key: "education.title", label: "Título — formação", default: "Formação" },
+      { key: "awards.title", label: "Título — prêmios", default: "Reconhecimentos" },
+    ],
+  },
+  {
     title: "Habilidades",
     fields: [
       { key: "skills.label", label: "Rótulo da seção", default: "Habilidades & stacks" },
