@@ -8,11 +8,6 @@ import { TransitionLink } from "../transition/transition-link";
 import { pageLabel, useSitePaths } from "../version-path";
 
 const RING_RADIUS = 50;
-// Círculo fechado: canto superior direito (desktop: 32px da borda).
-const CORNER_MARGIN = 32;
-const CIRCLE_SIZE = 56;
-// Distância (x) do centro da tela até o canto superior direito.
-const cornerOffset = () => document.documentElement.clientWidth / 2 - CORNER_MARGIN - CIRCLE_SIZE / 2;
 // A partir daqui (px de scroll) o menu se fecha no círculo.
 const COLLAPSE_AT = 140;
 // Aberto manualmente no meio da página: fecha depois de rolar isso.
@@ -42,12 +37,11 @@ function RingText({ text }: { text: string }) {
 
 type NavLink = { label: string; href: string; active?: boolean; external?: boolean };
 
-// Menu único, sempre no topo.
-// - Fechado: só o círculo laranja, fixo no canto superior direito, com
-//   "MENU · <página atual>" no anel.
-// - Aberto (desktop): o círculo desliza até o centro e uma pílula com as
-//   páginas se abre para os dois lados. No celular o círculo fica no canto e
-//   abre uma lista logo abaixo dele.
+// Menu:
+// - Círculo laranja sempre fixo no canto superior direito. Fechado, mostra
+//   "MENU · <página atual>" no anel; aberto, vira um X.
+// - Aberto (desktop): uma pílula com as páginas aparece centralizada no topo,
+//   separada do círculo. No celular, a lista abre logo abaixo do círculo.
 // No desktop ele começa aberto no topo da página e se fecha no círculo ao
 // rolar; clicar no círculo abre/fecha a qualquer momento.
 export function MenuDock() {
@@ -61,7 +55,6 @@ export function MenuDock() {
   const mobileTl = useRef<gsap.core.Timeline | null>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
   const openedAt = useRef(0);
-  const openRef = useRef(false);
 
   const links: NavLink[] = [
     ...(pathname === home ? [] : [{ label: "Início", href: home }]),
@@ -71,10 +64,6 @@ export function MenuDock() {
     { label: "Contato", href: "#contato" },
     ...(profile.cvUrl ? [{ label: "Baixar CV ↓", href: profile.cvUrl, external: true }] : []),
   ];
-  // No desktop os itens se dividem dos dois lados do círculo.
-  const half = Math.ceil(links.length / 2);
-  const left = links.slice(0, half);
-  const right = links.slice(half);
 
   const { contextSafe } = useGSAP(
     () => {
@@ -82,30 +71,21 @@ export function MenuDock() {
 
       const mm = gsap.matchMedia();
       mm.add("(min-width: 768px)", () => {
-        // Fechado, o círculo fica no canto superior direito; aberto, desliza
-        // até o centro e a pílula se abre a partir dele.
         const timeline = gsap
           .timeline({ paused: true })
-          .set([".menu-side", ".menu-pill"], { visibility: "visible" }, 0.3)
-          .fromTo(".menu-pill", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 0.3)
+          .set([".menu-side", ".menu-pill"], { visibility: "visible" }, 0)
+          .fromTo(".menu-pill", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 0)
           .fromTo(
             ".menu-side .nav-item",
             { autoAlpha: 0, y: -8 },
             { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.03 },
-            0.45,
+            0.15,
           )
           .to(".menu-ring", { autoAlpha: 0, duration: 0.25 }, 0)
           .to(".menu-bar-top", { y: 0, rotate: 45, duration: 0.35 }, 0)
           .to(".menu-bar-bottom", { y: 0, rotate: -45, duration: 0.35 }, 0);
         desktopTl.current = timeline;
-        gsap.set(".menu-shift", { x: cornerOffset() });
-        // Largura da janela mudou: recalcula a distância até o canto.
-        const onResize = () => {
-          if (!openRef.current) gsap.set(".menu-shift", { x: cornerOffset() });
-        };
-        window.addEventListener("resize", onResize);
         return () => {
-          window.removeEventListener("resize", onResize);
           desktopTl.current = null;
         };
       });
@@ -151,16 +131,11 @@ export function MenuDock() {
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 768px)").matches;
     const timeline = desktop ? desktopTl.current : mobileTl.current;
-    openRef.current = open;
     if (open) {
       openedAt.current = triggerRef.current?.scroll() ?? window.scrollY;
-      // Desktop: o círculo vai do canto ao centro e a pílula se abre.
-      if (desktop) gsap.to(".menu-shift", { x: 0, duration: 0.5, ease: "power3.inOut", overwrite: true });
       timeline?.timeScale(1).play();
     } else {
       timeline?.timeScale(1.5).reverse();
-      // …e ao fechar, a pílula se recolhe e o círculo volta para o canto.
-      if (desktop) gsap.to(".menu-shift", { x: cornerOffset(), duration: 0.5, delay: 0.3, ease: "power3.inOut", overwrite: true });
     }
   }, [open]);
 
@@ -224,16 +199,19 @@ export function MenuDock() {
   };
 
   return (
-    <div ref={rootRef} className="fixed right-5 top-5 z-50 md:left-1/2 md:right-auto md:w-max md:-translate-x-1/2">
-      <nav aria-label="Navegação principal" className="menu-shift relative">
-        {/* Fundo da pílula (desktop): abre a partir do centro. */}
-        <span className="menu-pill invisible absolute -inset-x-2 -inset-y-1 hidden rounded-full border border-cream/10 bg-[#1b1b1f]/80 backdrop-blur-xl md:block" />
+    <div ref={rootRef}>
+      {/* Desktop: pílula com as páginas, centralizada no topo. */}
+      <nav
+        aria-label="Navegação principal"
+        inert={!open}
+        className="fixed left-1/2 top-5 z-50 hidden h-14 w-max -translate-x-1/2 items-center md:flex"
+      >
+        <span className="menu-pill invisible absolute inset-x-0 top-1/2 h-[52px] -translate-y-1/2 rounded-full border border-cream/10 bg-[#1b1b1f]/80 backdrop-blur-xl" />
+        <ul className="menu-side invisible relative flex items-center gap-0.5 px-1.5">{links.map(renderItem)}</ul>
+      </nav>
 
-        <div className="relative flex items-center md:grid md:grid-cols-[1fr_auto_1fr] md:gap-2">
-          <ul inert={!open} className="menu-side invisible hidden justify-end md:flex">
-            {left.map(renderItem)}
-          </ul>
-
+      {/* Círculo: sempre no canto superior direito (vira X quando aberto). */}
+      <div className="fixed right-5 top-5 z-50 md:right-8">
           <button
             ref={buttonRef}
             type="button"
@@ -257,11 +235,6 @@ export function MenuDock() {
             </span>
           </button>
 
-          <ul inert={!open} className="menu-side invisible hidden md:flex">
-            {right.map(renderItem)}
-          </ul>
-        </div>
-
         {/* Celular: lista logo abaixo do círculo. */}
         <div
           id="menu-drop"
@@ -271,7 +244,7 @@ export function MenuDock() {
           <span className="menu-drop-bg absolute inset-0 origin-top-right rounded-[24px] border border-cream/10 bg-[#1b1b1f]/95 backdrop-blur-xl" />
           <ul className="relative flex flex-col gap-0.5 p-2 text-center">{links.map(renderItem)}</ul>
         </div>
-      </nav>
+      </div>
     </div>
   );
 }
