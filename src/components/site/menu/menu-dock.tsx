@@ -53,7 +53,10 @@ export function MenuDock() {
   const triggerRef = useRef<ScrollTrigger | null>(null);
   const openedAt = useRef(0);
 
+  const isHome = pathname === home;
   const links = [
+    // Sem o cabeçalho, "Início" é o caminho de volta fora da página inicial.
+    ...(isHome ? [] : [{ label: "Início", href: home, active: false }]),
     { label: "Projetos", href: `${home}#projetos`, active: false },
     { label: "Sobre mim", href: about, active: pathname === about },
     { label: "Experiência", href: experience, active: pathname === experience },
