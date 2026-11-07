@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { nav, profile } from "@/content/site";
+import { nav } from "@/content/site";
+import { useSiteContent } from "../content-context";
 import { gsap, ScrollTrigger, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import {
   MENU_CLOSE_EVENT,
@@ -47,12 +48,13 @@ function waveTimeline(paths: SVGPathElement[], mode: Mode) {
   return tl;
 }
 
-function labelFor(pathname: string) {
+function labelFor(pathname: string, name: string) {
   if (pathname.startsWith("/p/")) return "Olá";
-  return nav.find((item) => item.href === pathname)?.label ?? profile.name;
+  return nav.find((item) => item.href === pathname)?.label ?? name;
 }
 
 export function PageTransition() {
+  const { name } = useSiteContent().profile;
   const router = useRouter();
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -108,7 +110,7 @@ export function PageTransition() {
 
       if (labelRef.current) {
         const text = labelRef.current.querySelector("[data-label]");
-        if (text) text.textContent = labelFor(url.pathname);
+        if (text) text.textContent = labelFor(url.pathname, name);
       }
       if (counterRef.current) counterRef.current.textContent = "";
 
@@ -125,7 +127,7 @@ export function PageTransition() {
       if (prefersReducedMotion()) tl.timeScale(2.5);
     });
     return registerNavigator(cover);
-  }, [router, contextSafe]);
+  }, [router, contextSafe, name]);
 
   // A nova rota já foi montada (por baixo do overlay): zera o scroll,
   // recalcula os ScrollTriggers e revela.
@@ -170,7 +172,7 @@ export function PageTransition() {
         ref={labelRef}
         className="relative flex items-baseline gap-4 font-serif text-5xl italic text-cream md:text-7xl"
       >
-        <span data-label>{profile.name}</span>
+        <span data-label>{name}</span>
         <span ref={counterRef} className="font-mono text-xs not-italic tracking-widest text-muted">
           000
         </span>

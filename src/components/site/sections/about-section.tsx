@@ -1,14 +1,15 @@
 "use client";
 
 import { useRef } from "react";
-import { about } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useReveal } from "@/animations/use-reveal";
 import { useScrubText } from "@/animations/use-scrub-text";
 import { Eyebrow } from "../accent";
+import { useSiteContent } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 
 export function AboutSection({ index }: { index?: string }) {
+  const { about } = useSiteContent();
   const rootRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
 

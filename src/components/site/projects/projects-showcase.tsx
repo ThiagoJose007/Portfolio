@@ -5,6 +5,7 @@ import type { ShowcaseProject } from "@/lib/projects";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useAlive } from "@/animations/use-alive";
 import { Accent, Eyebrow } from "../accent";
+import { useSiteContent } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { scrollToTarget } from "../transition/navigation";
 import { ProjectCover } from "./project-cover";
@@ -17,13 +18,15 @@ const GAP = 24;
 // central, os outros ficam pequenos dos lados e o texto à esquerda acompanha.
 export function ProjectsShowcase({
   projects,
-  title = "Trabalhos *selecionados*",
+  title: titleProp,
   index,
 }: {
   projects: ShowcaseProject[];
   title?: string;
   index?: string;
 }) {
+  const copy = useSiteContent().projects;
+  const title = titleProp ?? copy.title;
   const rootRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
   const activeRef = useRef(0);

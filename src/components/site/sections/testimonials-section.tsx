@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef } from "react";
-import { testimonials, type Testimonial } from "@/content/site";
+import type { Testimonial } from "@/content/site";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
+import { useSiteContent } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { SectionCurve } from "../section-curve";
 
@@ -42,6 +43,7 @@ export function TestimonialCard({ item }: { item: Testimonial }) {
 // Seção clara: a cena 3D some e duas faixas de depoimentos correm em sentidos
 // opostos, acelerando com a velocidade do scroll.
 export function TestimonialsSection({ index }: { index?: string }) {
+  const { testimonials } = useSiteContent();
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const { items } = testimonials;

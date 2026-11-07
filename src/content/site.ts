@@ -1,5 +1,7 @@
-// Conteúdo fixo do site (o que não vem do banco).
-// Textos marcados com TODO são placeholders: troque pelos seus dados reais.
+// Conteúdo de fábrica do site. Desde que o conteúdo passou a ser editável no
+// /admin, este arquivo só é usado (1) enquanto nada foi importado para o banco
+// e (2) como ponto de partida do botão "Importar conteúdo atual" do painel.
+// Edite o conteúdo pelo /admin, não aqui. O `nav` continua sendo estrutural.
 //
 // Convenção: trechos entre *asteriscos* são renderizados em itálico serifado
 // (o "destaque" tipográfico do site). Ver `Accent` em components/site/accent.tsx.

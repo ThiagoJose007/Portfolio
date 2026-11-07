@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { testimonials } from "@/content/site";
+import { getSiteContent } from "@/lib/content/load";
 import { PageIntro } from "@/components/site/sections/page-intro";
 import {
   TestimonialCard,
@@ -9,13 +9,14 @@ import { ContactSection } from "@/components/site/sections/contact-section";
 
 export const metadata: Metadata = { title: "Depoimentos" };
 
-export default function TestimonialsPage() {
+export default async function TestimonialsPage() {
+  const { texts, testimonials } = await getSiteContent();
   return (
     <>
       <PageIntro
         eyebrow="Depoimentos"
-        title="Quem já trabalhou *comigo*."
-        text="Colegas, líderes e clientes contando como foi construir junto."
+        title={texts["page.depoimentos.title"]}
+        text={texts["page.depoimentos.text"]}
         scene={{ shape: 0, x: 0.45, scale: 0.8, noise: 0.6 }}
       />
       <TestimonialsSection index="01" />

@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { profile } from "@/content/site";
+import { useSiteContent } from "../content-context";
 import { createParticleScene } from "./create-scene";
 
 export function ParticleScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { initials } = useSiteContent().profile;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     try {
-      return createParticleScene(canvas, profile.initials);
+      return createParticleScene(canvas, initials);
     } catch (error) {
       // Sem WebGL o site continua funcionando, só sem o objeto 3D.
       console.warn("WebGL indisponível, cena 3D desativada.", error);
     }
-  }, []);
+  }, [initials]);
 
   return (
     <canvas

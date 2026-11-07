@@ -20,12 +20,9 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
+// Título e descrição do site público vêm do Perfil (ver app/(site)/layout.tsx).
 export const metadata: Metadata = {
-  title: {
-    default: `${profile.name} — ${profile.role}`,
-    template: `%s — ${profile.name}`,
-  },
-  description: `Portfolio de ${profile.name}, ${profile.role}.`,
+  title: profile.name,
 };
 
 export default function RootLayout({

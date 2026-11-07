@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import { hero, profile } from "@/content/site";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
+import { useSiteContent } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { afterReveal, scrollToTarget } from "../transition/navigation";
 
@@ -24,11 +24,15 @@ type HeroProps = {
 };
 
 export function Hero({
-  eyebrow = hero.eyebrow,
-  title = hero.title,
-  intro = hero.intro,
+  eyebrow: eyebrowProp,
+  title: titleProp,
+  intro: introProp,
   cta,
 }: HeroProps) {
+  const { hero, profile } = useSiteContent();
+  const eyebrow = eyebrowProp ?? hero.eyebrow;
+  const title = titleProp ?? hero.title;
+  const intro = introProp ?? hero.intro;
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
