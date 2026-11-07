@@ -44,7 +44,7 @@ export const TEXT_GROUPS: TextGroup[] = [
     ],
   },
   {
-    title: "Carreira",
+    title: "Experiência (linha do tempo)",
     fields: [
       { key: "career.label", label: "Rótulo da seção", default: career.label },
       { key: "career.title", label: "Título", default: career.title },
@@ -97,26 +97,12 @@ export const TEXT_GROUPS: TextGroup[] = [
         default: "Um pouco sobre como eu penso, trabalho e quais ferramentas uso para tirar ideias do papel.",
         multiline: true,
       },
-      { key: "page.carreira.title", label: "Carreira — título", default: "Uma trajetória em *camadas*." },
+      { key: "page.carreira.title", label: "Experiência — título", default: "Uma trajetória em *camadas*." },
       {
         key: "page.carreira.text",
-        label: "Carreira — texto",
+        label: "Experiência — texto",
         default:
           "Da formação aos produtos que construo hoje — cada capítulo acrescentou uma camada ao meu jeito de trabalhar.",
-        multiline: true,
-      },
-      { key: "page.projetos.title", label: "Projetos — título", default: "Coisas que eu *construí*." },
-      {
-        key: "page.projetos.text",
-        label: "Projetos — texto",
-        default: "Uma seleção de produtos, experimentos e estudos — do problema à solução no ar.",
-        multiline: true,
-      },
-      { key: "page.depoimentos.title", label: "Depoimentos — título", default: "Quem já trabalhou *comigo*." },
-      {
-        key: "page.depoimentos.text",
-        label: "Depoimentos — texto",
-        default: "Colegas, líderes e clientes contando como foi construir junto.",
         multiline: true,
       },
     ],

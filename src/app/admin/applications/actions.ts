@@ -2,6 +2,7 @@
 
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -54,12 +55,83 @@ export async function updateApplication(applicationId: string, formData: FormDat
     | "VIEWED"
     | "ARCHIVED";
 
+  const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
+  // Data sem hora: o link vale até o fim do dia escolhido.
+  const expiresAt = expiresRaw ? new Date(`${expiresRaw}T23:59:59`) : null;
+
+  const current = await prisma.application.findUnique({ where: { id: applicationId } });
+  if (!current) return;
+  if (!current.isDefault && (!companyName || !roleTitle || !introText)) {
+    throw new Error("Empresa, vaga e texto de introdução são obrigatórios.");
+  }
+
   await prisma.application.update({
     where: { id: applicationId },
-    data: { companyName, roleTitle, introText, ctaText, status },
+    data: current.isDefault
+      ? { introText, ctaText }
+      : { companyName, roleTitle, introText, ctaText, status, expiresAt },
   });
 
+  refresh(applicationId);
+}
+
+const refresh = (applicationId: string) => {
   revalidatePath(`/admin/applications/${applicationId}`);
+  revalidatePath("/admin/applications");
+  revalidatePath("/", "layout");
+};
+
+// Cria a candidatura especial que define o que aparece em "/".
+export async function createDefaultVersion() {
+  const existing = await prisma.application.findFirst({ where: { isDefault: true } });
+  const application =
+    existing ??
+    (await prisma.application.create({
+      data: {
+        companyName: "Versão geral",
+        roleTitle: "",
+        introText: "",
+        isDefault: true,
+        slug: buildApplicationSlug("geral"),
+      },
+    }));
+  revalidatePath("/admin/applications");
+  redirect(`/admin/applications/${application.id}`);
+}
+
+export async function addExperienceToApplication(applicationId: string, formData: FormData) {
+  const experienceId = String(formData.get("experienceId") ?? "");
+  if (!experienceId) return;
+  const order = await prisma.applicationExperience.count({ where: { applicationId } });
+  await prisma.applicationExperience.create({ data: { applicationId, experienceId, order } });
+  refresh(applicationId);
+}
+
+export async function removeExperienceFromApplication(formData: FormData) {
+  const id = String(formData.get("applicationExperienceId") ?? "");
+  const applicationId = String(formData.get("applicationId") ?? "");
+  if (!id) return;
+  await prisma.applicationExperience.delete({ where: { id } });
+  refresh(applicationId);
+}
+
+export async function updateApplicationExperience(formData: FormData) {
+  const id = String(formData.get("applicationExperienceId") ?? "");
+  const applicationId = String(formData.get("applicationId") ?? "");
+  if (!id) return;
+  const highlights = String(formData.get("customHighlights") ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  await prisma.applicationExperience.update({
+    where: { id },
+    data: {
+      order: Number(formData.get("order") ?? 0),
+      customSummary: String(formData.get("customSummary") ?? "").trim() || null,
+      customHighlights: highlights.length > 0 ? highlights : Prisma.DbNull,
+    },
+  });
+  refresh(applicationId);
 }
 
 export async function deleteApplication(formData: FormData) {
@@ -90,7 +162,7 @@ export async function addProjectToApplication(
     },
   });
 
-  revalidatePath(`/admin/applications/${applicationId}`);
+  refresh(applicationId);
 }
 
 export async function removeProjectFromApplication(formData: FormData) {
@@ -99,7 +171,7 @@ export async function removeProjectFromApplication(formData: FormData) {
   if (!applicationProjectId) return;
 
   await prisma.applicationProject.delete({ where: { id: applicationProjectId } });
-  revalidatePath(`/admin/applications/${applicationId}`);
+  refresh(applicationId);
 }
 
 export async function updateApplicationProject(formData: FormData) {
@@ -117,5 +189,5 @@ export async function updateApplicationProject(formData: FormData) {
     data: { order, highlighted, customDescription },
   });
 
-  revalidatePath(`/admin/applications/${applicationId}`);
+  refresh(applicationId);
 }

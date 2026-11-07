@@ -1,7 +1,7 @@
 // Conteúdo de fábrica do site. Desde que o conteúdo passou a ser editável no
 // /admin, este arquivo só é usado (1) enquanto nada foi importado para o banco
 // e (2) como ponto de partida do botão "Importar conteúdo atual" do painel.
-// Edite o conteúdo pelo /admin, não aqui. O `nav` continua sendo estrutural.
+// Edite o conteúdo pelo /admin, não aqui.
 //
 // Convenção: trechos entre *asteriscos* são renderizados em itálico serifado
 // (o "destaque" tipográfico do site). Ver `Accent` em components/site/accent.tsx.
@@ -89,7 +89,7 @@ export type CareerChapter = {
 
 // TODO: substitua pelos capítulos reais da sua trajetória.
 export const career = {
-  label: "Carreira",
+  label: "Experiência",
   title: "Cada etapa *moldou* o que eu faço hoje",
   chapters: [
     {
@@ -180,20 +180,3 @@ export const contact = {
   text: "Aberto a vagas, freelas e boas conversas sobre produto.",
   cta: "Fale comigo",
 };
-
-export type NavItem = {
-  label: string;
-  href: string;
-  // Âncora usada nas páginas personalizadas (/p/[slug]), onde o menu navega
-  // dentro da própria página em vez de abrir as páginas fixas.
-  anchor: string;
-  icon: "spark" | "flower" | "diamond" | "bubble" | "ring";
-};
-
-export const nav: NavItem[] = [
-  { label: "Início", href: "/", anchor: "#inicio", icon: "spark" },
-  { label: "Sobre mim", href: "/sobre", anchor: "#sobre", icon: "flower" },
-  { label: "Projetos", href: "/projetos", anchor: "#projetos", icon: "diamond" },
-  { label: "Depoimentos", href: "/depoimentos", anchor: "#depoimentos", icon: "bubble" },
-  { label: "Carreira", href: "/carreira", anchor: "#carreira", icon: "ring" },
-];

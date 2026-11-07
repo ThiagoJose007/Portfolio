@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import type { CareerChapter } from "@/content/site";
 import { gsap } from "@/lib/gsap";
 import { usePinnedSteps } from "@/animations/use-pinned-steps";
 import { useSplitReveal } from "@/animations/use-split-reveal";
@@ -10,11 +11,11 @@ import { setScene } from "../scene/scene-store";
 
 // Storytelling da carreira (referência: storytelling.noomoagency.com): a seção
 // fica fixa, o objeto 3D muda de forma a cada capítulo e o texto ao lado troca.
-export function CareerSection({ index }: { index?: string }) {
+export function CareerSection({ index, chapters: chaptersProp }: { index?: string; chapters?: CareerChapter[] }) {
   const { career } = useSiteContent();
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const { chapters } = career;
+  const chapters = chaptersProp ?? career.chapters;
 
   useSplitReveal(titleRef, { by: "words" });
 

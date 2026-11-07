@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
+import type { Experience } from "@/generated/prisma/client";
 import * as defaults from "@/content/site";
 import type { CareerChapter, SceneShape } from "@/content/site";
 import { splitLines, TEXT_DEFAULTS } from "./texts";
@@ -26,6 +27,50 @@ const toSocials = (value: unknown): SocialLink[] =>
     : [];
 
 const toShape = (value: number): SceneShape => (value >= 0 && value <= 4 ? (value as SceneShape) : 0);
+
+export function toExperienceItem(
+  row: Experience,
+  overrides: { summary?: string | null; highlights?: unknown } = {},
+): ExperienceItem {
+  const customHighlights = toStringArray(overrides.highlights);
+  return {
+    id: row.id,
+    company: row.company,
+    role: row.role,
+    location: row.location,
+    start: row.start,
+    end: row.end,
+    period: formatPeriod(row.start, row.end),
+    headline: row.headline,
+    summary: overrides.summary || row.summary,
+    highlights: customHighlights.length > 0 ? customHighlights : toStringArray(row.highlights),
+    shape: toShape(row.shape),
+  };
+}
+
+// Capítulos da linha do tempo (seção Carreira): as experiências + o capítulo
+// final editável em Textos ("E agora, juntos").
+export function buildChapters(experiences: ExperienceItem[], texts: Record<string, string>): CareerChapter[] {
+  const chapters: CareerChapter[] = experiences.map((item) => ({
+    period: item.period,
+    role: item.role,
+    place: item.company,
+    title: item.headline || item.role,
+    text: item.summary,
+    shape: item.shape,
+  }));
+  if (texts["career.next.title"]?.trim()) {
+    chapters.push({
+      period: texts["career.next.period"],
+      role: texts["career.next.role"],
+      place: texts["career.next.place"],
+      title: texts["career.next.title"],
+      text: texts["career.next.text"],
+      shape: 4,
+    });
+  }
+  return chapters;
+}
 
 // Conteúdo de fábrica (src/content/site.ts), usado enquanto nada foi
 // importado para o banco em /admin.
@@ -111,21 +156,7 @@ async function loadFromDatabase() {
 
   return {
     profile,
-    experiences: experiences.map(
-      (row): ExperienceItem => ({
-        id: row.id,
-        company: row.company,
-        role: row.role,
-        location: row.location,
-        start: row.start,
-        end: row.end,
-        period: formatPeriod(row.start, row.end),
-        headline: row.headline,
-        summary: row.summary,
-        highlights: toStringArray(row.highlights),
-        shape: toShape(row.shape),
-      }),
-    ),
+    experiences: experiences.map((row) => toExperienceItem(row)),
     education: education.map((row) => ({
       id: row.id,
       institution: row.institution,
@@ -163,24 +194,7 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   const texts: Record<string, string> = { ...TEXT_DEFAULTS };
   for (const row of textRows) texts[row.key] = row.value;
 
-  const chapters: CareerChapter[] = data.experiences.map((item) => ({
-    period: item.period,
-    role: item.role,
-    place: item.company,
-    title: item.headline || item.role,
-    text: item.summary,
-    shape: item.shape,
-  }));
-  if (texts["career.next.title"].trim()) {
-    chapters.push({
-      period: texts["career.next.period"],
-      role: texts["career.next.role"],
-      place: texts["career.next.place"],
-      title: texts["career.next.title"],
-      text: texts["career.next.text"],
-      shape: 4,
-    });
-  }
+  const chapters = buildChapters(data.experiences, texts);
 
   const { stats, skillGroups, testimonialItems, ...rest } = data;
 
