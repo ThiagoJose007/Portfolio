@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { getSiteContent } from "@/lib/content/load";
+import { buildChapters, getSiteContent } from "@/lib/content/load";
 import { getDefaultVersion, getVersionBySlug, trackVisit, type SiteVersion } from "@/lib/versions";
 import { Hero } from "./sections/hero";
 import { PageIntro } from "./sections/page-intro";
 import { AboutSection } from "./sections/about-section";
 import { AboutHero } from "./sections/about-hero";
-import { ExperienceList } from "./sections/experience-list";
+import { CareerSection } from "./sections/career-section";
+import { SkillsSection } from "./sections/skills-section";
 import {
   AwardsSection,
   BeyondSection,
   EducationSection,
   FreelanceSection,
   ProcessSection,
-  SkillsGrid,
 } from "./sections/content-sections";
 import { TestimonialsSection } from "./sections/testimonials-section";
 import { ContactSection } from "./sections/contact-section";
 import { NextSteps } from "./sections/next-steps";
-import { ProjectsGrid } from "./projects/projects-grid";
+import { ProjectsShowcase } from "./projects/projects-showcase";
 import { ProjectCase } from "./projects/project-case";
 
 // Páginas do site, compartilhadas pela versão geral ("/…") e pelas versões
@@ -53,7 +53,7 @@ export async function HomeView({ version, searchParams }: { version: SiteVersion
   return (
     <>
       <Hero {...version.hero} />
-      <ProjectsGrid
+      <ProjectsShowcase
         index="01"
         projects={version.projects}
         title={version.companyName ? `Projetos para *${version.companyName}*` : undefined}
@@ -75,7 +75,7 @@ export async function AboutView({ version, searchParams }: { version: SiteVersio
       <AboutHero />
       <AboutSection index="01" />
       <ProcessSection index="02" steps={process} />
-      <SkillsGrid index="03" />
+      <SkillsSection index="03" />
       <BeyondSection index="04" />
       <FreelanceSection />
       {hasTestimonials && <TestimonialsSection />}
@@ -84,7 +84,8 @@ export async function AboutView({ version, searchParams }: { version: SiteVersio
   );
 }
 
-// Experiência: trajetória (escolhida por versão) → formação → prêmios → contato.
+// Experiência: storytelling da carreira (experiências escolhidas por versão,
+// o objeto 3D muda a cada capítulo) → formação → prêmios → contato.
 export async function ExperienceView({ version, searchParams }: { version: SiteVersion } & PageProps) {
   await trackVisit(version, await isPreview(searchParams));
   const { texts, education, awards } = await getSiteContent();
@@ -96,7 +97,7 @@ export async function ExperienceView({ version, searchParams }: { version: SiteV
         text={texts["page.carreira.text"]}
         scene={{ shape: 1, x: 0.4, scale: 0.95 }}
       />
-      <ExperienceList index="01" experiences={version.experiences} />
+      <CareerSection index="01" chapters={buildChapters(version.experiences, texts)} />
       <EducationSection index="02" items={education} />
       <AwardsSection index="03" items={awards} />
       <ContactSection />

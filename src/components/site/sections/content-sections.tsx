@@ -65,30 +65,6 @@ export function ProcessSection({ index, steps }: { index?: string; steps: Simple
   );
 }
 
-export function SkillsGrid({ index }: { index?: string }) {
-  const { skills } = useSiteContent();
-  if (skills.groups.length === 0) return null;
-  return (
-    <Section index={index} label={skills.label} title={skills.title} scene={{ shape: 2, y: 0.06, scale: 0.72, noise: 0.15, opacity: 0.4 }}>
-      <div className="grid gap-4 md:grid-cols-2">
-        {skills.groups.map((group) => (
-          <article key={group.id} data-reveal className="rounded-[28px] border border-cream/12 bg-cream/[0.03] p-7 md:p-9">
-            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{group.label}</h3>
-            {group.headline && <p className="mt-3 text-xl font-medium tracking-tight md:text-2xl">{group.headline}</p>}
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {group.stacks.map((stack) => (
-                <li key={stack} className="rounded-full border border-cream/20 px-3.5 py-1.5 text-sm text-cream/90">
-                  {stack}
-                </li>
-              ))}
-            </ul>
-          </article>
-        ))}
-      </div>
-    </Section>
-  );
-}
-
 function ItemList({ items }: { items: SimpleItem[] }) {
   return (
     <ul className="space-y-5">

@@ -2,7 +2,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import type { Experience } from "@/generated/prisma/client";
 import * as defaults from "@/content/site";
-import type { SceneShape } from "@/content/site";
+import type { CareerChapter, SceneShape } from "@/content/site";
 import { splitLines, TEXT_DEFAULTS } from "./texts";
 import type { ExperienceItem, Profile, SiteContent, SimpleItem, SocialLink } from "./types";
 
@@ -46,6 +46,31 @@ export function toExperienceItem(
     highlights: customHighlights.length > 0 ? customHighlights : toStringArray(row.highlights),
     shape: toShape(row.shape),
   };
+}
+
+// Capítulos do storytelling de carreira: as experiências (da mais antiga para
+// a mais recente) + o capítulo final editável em Textos ("E agora, juntos").
+export function buildChapters(experiences: ExperienceItem[], texts: Record<string, string>): CareerChapter[] {
+  const chapters: CareerChapter[] = experiences.map((item) => ({
+    period: item.period,
+    role: item.role,
+    place: item.company,
+    title: item.headline || item.role,
+    text: item.summary,
+    highlights: item.highlights,
+    shape: item.shape,
+  }));
+  if (texts["career.next.title"]?.trim()) {
+    chapters.push({
+      period: texts["career.next.period"],
+      role: texts["career.next.role"],
+      place: texts["career.next.place"],
+      title: texts["career.next.title"],
+      text: texts["career.next.text"],
+      shape: 4,
+    });
+  }
+  return chapters;
 }
 
 // Conteúdo de fábrica (src/content/site.ts), usado enquanto nada foi
