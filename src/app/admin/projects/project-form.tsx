@@ -1,13 +1,5 @@
-type ProjectFormValues = {
-  title?: string;
-  summary?: string;
-  description?: string;
-  coverImage?: string | null;
-  repoUrl?: string | null;
-  liveUrl?: string | null;
-  visible?: boolean;
-  tags?: unknown;
-};
+import { Field, SubmitButton } from "../_components/fields";
+import { PROJECT_SECTIONS } from "./fields";
 
 export function ProjectForm({
   action,
@@ -15,97 +7,24 @@ export function ProjectForm({
   submitLabel,
 }: {
   action: (formData: FormData) => void;
-  defaultValues?: ProjectFormValues;
+  defaultValues?: Record<string, unknown>;
   submitLabel: string;
 }) {
-  const tags = Array.isArray(defaultValues?.tags)
-    ? (defaultValues!.tags as string[]).join(", ")
-    : "";
+  const values: Record<string, unknown> = { ...defaultValues };
+  if (Array.isArray(values.tags)) values.tags = values.tags.join(", ");
 
   return (
-    <form action={action} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm">
-        Título
-        <input
-          name="title"
-          defaultValue={defaultValues?.title}
-          required
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Resumo (aparece na listagem)
-        <input
-          name="summary"
-          defaultValue={defaultValues?.summary}
-          required
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Descrição completa
-        <textarea
-          name="description"
-          defaultValue={defaultValues?.description}
-          required
-          rows={6}
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Imagem de capa (URL)
-        <input
-          name="coverImage"
-          defaultValue={defaultValues?.coverImage ?? ""}
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Repositório (URL)
-        <input
-          name="repoUrl"
-          defaultValue={defaultValues?.repoUrl ?? ""}
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Link ao vivo (URL)
-        <input
-          name="liveUrl"
-          defaultValue={defaultValues?.liveUrl ?? ""}
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        Tags (separadas por vírgula)
-        <input
-          name="tags"
-          defaultValue={tags}
-          className="rounded border border-gray-300 px-3 py-2"
-        />
-      </label>
-
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="visible"
-          defaultChecked={defaultValues?.visible ?? true}
-        />
-        Visível no site fixo
-      </label>
-
-      <button
-        type="submit"
-        className="mt-2 rounded bg-black px-4 py-2 text-sm text-white"
-      >
-        {submitLabel}
-      </button>
+    <form action={action} className="flex flex-col gap-10">
+      {PROJECT_SECTIONS.map((section) => (
+        <fieldset key={section.title} className="flex flex-col gap-4">
+          <legend className="mb-1 text-lg font-medium">{section.title}</legend>
+          {section.description && <p className="-mt-2 text-sm text-gray-500">{section.description}</p>}
+          {section.fields.map((field) => (
+            <Field key={field.name} field={field} value={values[field.name]} />
+          ))}
+        </fieldset>
+      ))}
+      <SubmitButton>{submitLabel}</SubmitButton>
     </form>
   );
 }

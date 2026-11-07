@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { toShowcaseProject } from "@/lib/projects";
+import { getSiteContent } from "@/lib/content/load";
 import { PageIntro } from "@/components/site/sections/page-intro";
 import { ProjectsShowcase } from "@/components/site/projects/projects-showcase";
 import { ProjectsIndex } from "@/components/site/projects/projects-index";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Projetos" };
 
 export default async function ProjectsPage() {
+  const { texts } = await getSiteContent();
   const projects = (
     await prisma.project.findMany({
       where: { visible: true },
@@ -21,8 +23,8 @@ export default async function ProjectsPage() {
     <>
       <PageIntro
         eyebrow="Projetos"
-        title="Coisas que eu *construí*."
-        text="Uma seleção de produtos, experimentos e estudos — do problema à solução no ar."
+        title={texts["page.projetos.title"]}
+        text={texts["page.projetos.text"]}
         scene={{ shape: 2, x: 0.45, scale: 0.85 }}
       />
       <ProjectsShowcase index="01" projects={projects} />

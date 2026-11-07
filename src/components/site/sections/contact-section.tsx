@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef } from "react";
-import { contact, profile } from "@/content/site";
 import { useMagnetic } from "@/animations/use-magnetic";
 import { useReveal } from "@/animations/use-reveal";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
+import { useSiteContent } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { SectionCurve } from "../section-curve";
 import { scrollToTarget } from "../transition/navigation";
@@ -13,13 +13,15 @@ import { scrollToTarget } from "../transition/navigation";
 export function ContactSection({
   index,
   afterLight = false,
-  text = contact.text,
+  text: textProp,
 }: {
   index?: string;
   // Desenha a curva escura sobre a seção clara anterior (depoimentos).
   afterLight?: boolean;
   text?: string;
 }) {
+  const { contact, profile } = useSiteContent();
+  const text = textProp ?? contact.text;
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const buttonRef = useRef<HTMLAnchorElement>(null);

@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# uploads locais do admin (em produção ficam no volume do Railway)
+/uploads

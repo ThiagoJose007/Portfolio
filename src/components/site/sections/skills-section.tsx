@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import { skills } from "@/content/site";
 import { gsap } from "@/lib/gsap";
 import { usePinnedSteps } from "@/animations/use-pinned-steps";
 import { Eyebrow } from "../accent";
+import { useSiteContent } from "../content-context";
 import { setScene } from "../scene/scene-store";
 
 // Pontos em volta do objeto 3D onde as stacks aparecem como "anotações"
@@ -19,6 +19,8 @@ const ANCHORS = [
 ];
 
 export function SkillsSection({ index }: { index?: string }) {
+  const { skills: content } = useSiteContent();
+  const skills = content.groups;
   const rootRef = useRef<HTMLElement>(null);
 
   usePinnedSteps(rootRef, {
@@ -88,9 +90,9 @@ export function SkillsSection({ index }: { index?: string }) {
       >
         <div className="relative z-10 flex items-start justify-between md:absolute md:inset-x-8 md:top-[12vh]">
           <div>
-            <Eyebrow index={index}>Habilidades & stacks</Eyebrow>
+            <Eyebrow index={index}>{content.label}</Eyebrow>
             <h2 className="mt-4 max-w-md text-3xl font-medium tracking-tight md:text-4xl">
-              Ferramentas que uso para levar ideias até a produção.
+              {content.title}
             </h2>
           </div>
           <p className="hidden font-mono text-xs tracking-[0.2em] text-muted md:block">

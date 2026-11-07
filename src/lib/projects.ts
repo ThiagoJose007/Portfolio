@@ -12,6 +12,13 @@ export type ShowcaseProject = {
   tags: string[];
   repoUrl: string | null;
   liveUrl: string | null;
+  role: string | null;
+  year: string | null;
+  client: string | null;
+  problem: string | null;
+  process: string | null;
+  outcome: string | null;
+  videoUrl: string | null;
   highlighted: boolean;
 };
 
@@ -33,6 +40,13 @@ export function toShowcaseProject(
     tags: toStringArray(project.tags),
     repoUrl: project.repoUrl,
     liveUrl: project.liveUrl,
+    role: project.role,
+    year: project.year,
+    client: project.client,
+    problem: project.problem,
+    process: project.process,
+    outcome: project.outcome,
+    videoUrl: project.videoUrl,
     highlighted: overrides.highlighted ?? false,
   };
 }

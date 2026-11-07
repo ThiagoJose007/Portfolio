@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { profile } from "@/content/site";
+import { useSiteContent } from "./content-context";
 import { TransitionLink } from "./transition/transition-link";
 
 const subscribeClock = (onChange: () => void) => {
@@ -22,6 +22,7 @@ function useLocalTime(timeZone: string) {
 }
 
 export function SiteHeader() {
+  const { profile } = useSiteContent();
   const time = useLocalTime(profile.timeZone);
 
   return (

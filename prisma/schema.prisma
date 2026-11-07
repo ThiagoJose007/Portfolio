@@ -21,6 +21,14 @@ model Project {
   tags        Json     @default("[]")
   repoUrl     String?
   liveUrl     String?
+  // Estudo de caso
+  role        String?
+  year        String?
+  client      String?
+  problem     String?
+  process     String?
+  outcome     String?
+  videoUrl    String?
   visible     Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -67,4 +75,159 @@ enum ApplicationStatus {
   SENT
   VIEWED
   ARCHIVED
+}
+
+// ---------------------------------------------------------------------------
+// Conteúdo editável do site (admin → /admin/conteudo)
+// ---------------------------------------------------------------------------
+
+// Registro único (id = "main") com os dados pessoais e o TL;DR.
+model Profile {
+  id               String   @id @default("main")
+  name             String
+  initials         String
+  role             String
+  location         String
+  timeZone         String   @default("America/Sao_Paulo")
+  availability     String
+  email            String
+  photo            String?
+  cvUrl            String?
+  socials          Json     @default("[]") // [{ label, href }]
+  bio              String   @default("")
+  tldrCareer       String   @default("")
+  tldrBasedIn      String   @default("")
+  tldrSkillset     String   @default("")
+  tldrExperience   String   @default("")
+  tldrLanguages    String   @default("")
+  freelanceEnabled Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+
+  @@map("profile")
+}
+
+// Textos soltos das seções (títulos, rótulos, frases). A lista de chaves
+// possíveis fica em src/lib/content/texts.ts.
+model SiteText {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_texts")
+}
+
+model Experience {
+  id         String   @id @default(uuid())
+  company    String
+  role       String
+  location   String?
+  start      String
+  end        String?
+  headline   String   @default("")
+  summary    String   @default("")
+  highlights Json     @default("[]")
+  shape      Int      @default(0)
+  order      Int      @default(0)
+  visible    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("experiences")
+}
+
+model Education {
+  id          String   @id @default(uuid())
+  institution String
+  course      String
+  kind        String   @default("Graduação")
+  start       String?
+  end         String?
+  description String?
+  order       Int      @default(0)
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("education")
+}
+
+model SkillGroup {
+  id        String   @id @default(uuid())
+  label     String
+  headline  String   @default("")
+  stacks    Json     @default("[]")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("skill_groups")
+}
+
+model Stat {
+  id        String   @id @default(uuid())
+  value     Int
+  suffix    String   @default("")
+  label     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stats")
+}
+
+model ProcessStep {
+  id        String   @id @default(uuid())
+  title     String
+  text      String   @default("")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("process_steps")
+}
+
+enum AboutItemKind {
+  VALUE   // Valores pessoais
+  HOBBY   // Fora do trabalho
+  GOAL    // O que busco
+  SERVICE // Freelancer / outsourcing
+}
+
+model AboutItem {
+  id        String        @id @default(uuid())
+  kind      AboutItemKind
+  title     String
+  text      String        @default("")
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([kind, order])
+  @@map("about_items")
+}
+
+model Award {
+  id        String   @id @default(uuid())
+  title     String
+  issuer    String   @default("")
+  project   String?
+  year      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("awards")
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  quote     String
+  name      String
+  role      String   @default("")
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
 }
