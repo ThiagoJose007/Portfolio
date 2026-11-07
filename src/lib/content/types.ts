@@ -1,4 +1,4 @@
-import type { CareerChapter, SceneShape, SkillGroup, Testimonial } from "@/content/site";
+import type { SceneShape, SkillGroup, Testimonial } from "@/content/site";
 
 // Formato serializável do conteúdo do site, montado no servidor
 // (src/lib/content/load.ts) e entregue aos componentes client via contexto.
@@ -62,7 +62,7 @@ export type SiteContent = {
   hero: { eyebrow: string; title: string; intro: string; tags: string[] };
   about: { label: string; manifesto: string; stats: StatItem[] };
   skills: { label: string; title: string; groups: SkillGroup[] };
-  career: { label: string; title: string; chapters: CareerChapter[] };
+  career: { label: string; title: string };
   experiences: ExperienceItem[];
   education: EducationItem[];
   process: SimpleItem[];

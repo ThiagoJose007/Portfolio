@@ -6,3 +6,6 @@ node_modules
 npm-debug.log
 Dockerfile
 docker-compose.yml
+
+# arquivos enviados pelo admin em desenvolvimento
+uploads

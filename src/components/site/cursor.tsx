@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { MENU_CLOSE_EVENT } from "./transition/navigation";
 
 // Cursor seguidor (gsap.quickTo). Cresce sobre links/botões e mostra um rótulo
 // em elementos com `data-cursor="Texto"`. Desligado em telas touch.
@@ -38,11 +39,19 @@ export function Cursor() {
       gsap.to(textRef.current, { autoAlpha: label ? 1 : 0, duration: 0.25 });
     };
     const onLeave = () => gsap.to(dot, { autoAlpha: 0, duration: 0.3 });
+    // Troca de página: o elemento sob o ponteiro sumiu, então volta ao normal.
+    const onNavigate = () => {
+      current = null;
+      gsap.to(dot, { scale: 1, duration: 0.4, overwrite: "auto" });
+      gsap.to(textRef.current, { autoAlpha: 0, duration: 0.2 });
+    };
 
     window.addEventListener("pointermove", onMove);
+    window.addEventListener(MENU_CLOSE_EVENT, onNavigate);
     document.documentElement.addEventListener("pointerleave", onLeave);
     return () => {
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener(MENU_CLOSE_EVENT, onNavigate);
       document.documentElement.removeEventListener("pointerleave", onLeave);
     };
   });

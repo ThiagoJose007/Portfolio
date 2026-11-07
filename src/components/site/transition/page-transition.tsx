@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { nav } from "@/content/site";
 import { useSiteContent } from "../content-context";
+import { pageLabel } from "../version-path";
 import { gsap, ScrollTrigger, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import {
   MENU_CLOSE_EVENT,
@@ -49,8 +49,8 @@ function waveTimeline(paths: SVGPathElement[], mode: Mode) {
 }
 
 function labelFor(pathname: string, name: string) {
-  if (pathname.startsWith("/p/")) return "Olá";
-  return nav.find((item) => item.href === pathname)?.label ?? name;
+  const label = pageLabel(pathname);
+  return label === "Início" ? name : label;
 }
 
 export function PageTransition() {

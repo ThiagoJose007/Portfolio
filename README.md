@@ -1,7 +1,27 @@
 # Portfolio — Thiago Santos
 
-Site de portfolio com páginas personalizadas por candidatura (`/p/[slug]`) e um admin
-para cadastrar projetos e candidaturas.
+Site de portfolio com uma versão geral pública e versões privadas por candidatura, e um
+admin para editar todo o conteúdo.
+
+## Estrutura do site
+
+| Endereço | O quê |
+| --- | --- |
+| `/` | Início da versão geral: Hero + todos os projetos |
+| `/sobre`, `/experiencia` | Páginas da versão geral |
+| `/projetos/<projeto>` | Estudo de caso |
+| `/<slug>`, `/<slug>/sobre`, `/<slug>/experiencia`, `/<slug>/projetos/<projeto>` | A mesma estrutura, na versão de uma candidatura |
+
+- A **versão geral** é configurada em `/admin/applications` → "Configurar versão geral".
+  Sem configuração, mostra todos os projetos e experiências visíveis.
+- Cada **candidatura** escolhe os projetos e as experiências (com resumo e conquistas
+  ajustados à vaga). Os dados pessoais são os mesmos em todas. O link tem um sufixo
+  aleatório, fica fora do Google, pode expirar e é desativado ao arquivar.
+- **Visitas**: cada entrada em uma candidatura conta uma visita (navegação interna,
+  robôs/prévias de link e o link "Abrir prévia" do admin não contam). Na primeira visita,
+  o status "Enviado" vira "Visualizado".
+- Endereços antigos redirecionam: `/p/<slug>` → `/<slug>`, `/carreira` → `/experiencia`,
+  `/depoimentos` → `/sobre`, `/projetos` → `/#projetos`.
 
 **Stack:** Next.js 16 (App Router) · React 19 · Tailwind 4 · Prisma 7 + PostgreSQL 16 ·
 GSAP 3.15 · three.js · Docker.
@@ -44,7 +64,7 @@ npm run dev
 | --- | --- |
 | Site | http://localhost:3000 |
 | Admin | http://localhost:3000/admin (qualquer usuário + `ADMIN_PASSWORD`) |
-| Página de candidatura | http://localhost:3000/p/&lt;slug&gt; (os slugs aparecem em `/admin/applications`) |
+| Página de candidatura | http://localhost:3000/&lt;slug&gt; (os slugs aparecem em `/admin/applications`) |
 
 Na primeira visita, cada página demora alguns segundos: o servidor de desenvolvimento
 compila a página sob demanda.
@@ -109,13 +129,21 @@ uma lista nova, crie o model no Prisma e registre em `src/app/admin/conteudo/col
 
 ## Deploy (Railway)
 
-O `Dockerfile` gera a build `standalone` do Next. No Railway: crie o serviço a partir do
-repositório (Dockerfile), adicione o plugin Postgres e configure `DATABASE_URL` e
-`ADMIN_PASSWORD` nas variáveis do serviço. Rode `npx prisma migrate deploy` contra o banco
-de produção a cada deploy que traga migrations novas.
+O `Dockerfile` gera a build `standalone` do Next e, **a cada start, aplica as migrations
+pendentes** (`prisma migrate deploy`) antes de subir o site — não é preciso rodar nada à mão.
 
-**Uploads:** o container é recriado a cada deploy, então os arquivos enviados pelo admin
-precisam de um **Volume**. No serviço: *Settings → Volumes → Add Volume*, mount path
-`/data`, e a variável `UPLOAD_DIR=/data/uploads`. Os arquivos são servidos pelo próprio
-site em `/media/<arquivo>` (limite de 25 MB por arquivo). Com volume, o serviço roda com
-uma única instância; ative os backups do volume no painel, se o plano tiver.
+1. **Novo projeto:** no Railway, *New Project → Deploy from GitHub repo* e escolha este
+   repositório (e a branch que quer publicar). O Railway detecta o `Dockerfile`.
+2. **Banco:** no mesmo projeto, *+ Create → Database → PostgreSQL*.
+3. **Variáveis do serviço do site** (*Variables*):
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (referência ao banco criado acima)
+   - `ADMIN_PASSWORD` = uma senha forte
+   - `UPLOAD_DIR` = `/data/uploads`
+4. **Volume:** no serviço do site, *Settings → Volumes → Add Volume*, mount path `/data`.
+   Sem ele, fotos, capas e o CV somem a cada deploy.
+5. **Domínio:** *Settings → Networking → Generate Domain* (ou adicione o seu domínio).
+6. **Primeiro acesso:** abra `/admin` (qualquer usuário + `ADMIN_PASSWORD`), clique em
+   **Importar conteúdo atual** e substitua os textos de exemplo pelos seus dados.
+
+Com volume, o serviço roda com uma única instância (suficiente para um portfolio); ative os
+backups do volume no painel, se o seu plano tiver.

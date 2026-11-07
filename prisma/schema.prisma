@@ -39,35 +39,57 @@ model Project {
 }
 
 model Application {
-  id           String    @id @default(uuid())
-  companyName  String
-  roleTitle    String
-  slug         String    @unique
-  introText    String
-  ctaText      String?
-  status       ApplicationStatus @default(DRAFT)
-  expiresAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String            @id @default(uuid())
+  companyName   String
+  roleTitle     String
+  slug          String            @unique
+  introText     String
+  ctaText       String?
+  status        ApplicationStatus @default(DRAFT)
+  expiresAt     DateTime?
+  // Versão geral: servida em "/" para quem não tem link de candidatura.
+  isDefault     Boolean           @default(false)
+  viewCount     Int               @default(0)
+  firstViewedAt DateTime?
+  lastViewedAt  DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
-  projects ApplicationProject[]
+  projects    ApplicationProject[]
+  experiences ApplicationExperience[]
 
   @@map("applications")
 }
 
 model ApplicationProject {
-  id                 String   @id @default(uuid())
-  applicationId      String
-  projectId          String
-  order              Int      @default(0)
-  customDescription  String?
-  highlighted        Boolean  @default(false)
+  id                String  @id @default(uuid())
+  applicationId     String
+  projectId         String
+  order             Int     @default(0)
+  customDescription String?
+  highlighted       Boolean @default(false)
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([applicationId, projectId])
   @@map("application_projects")
+}
+
+// Experiências escolhidas para uma versão, com textos ajustados à vaga.
+model ApplicationExperience {
+  id               String  @id @default(uuid())
+  applicationId    String
+  experienceId     String
+  order            Int     @default(0)
+  customSummary    String?
+  customHighlights Json?
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  experience  Experience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, experienceId])
+  @@map("application_experiences")
 }
 
 enum ApplicationStatus {
@@ -132,6 +154,8 @@ model Experience {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  applicationExperiences ApplicationExperience[]
+
   @@map("experiences")
 }
 
@@ -187,9 +211,9 @@ model ProcessStep {
 }
 
 enum AboutItemKind {
-  VALUE   // Valores pessoais
-  HOBBY   // Fora do trabalho
-  GOAL    // O que busco
+  VALUE // Valores pessoais
+  HOBBY // Fora do trabalho
+  GOAL // O que busco
   SERVICE // Freelancer / outsourcing
 }
 

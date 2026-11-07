@@ -35,14 +35,6 @@ export type Collection = {
 
 const delegate = (model: unknown) => () => model as Delegate;
 
-const SHAPES = [
-  { value: "0", label: "Esfera de partículas" },
-  { value: "1", label: "Anel" },
-  { value: "2", label: "Estrutura em grade" },
-  { value: "3", label: "Dupla hélice" },
-  { value: "4", label: "Monograma" },
-];
-
 const aboutItems = (
   key: string,
   kind: AboutItemKind,
@@ -68,7 +60,7 @@ export const COLLECTIONS: Collection[] = [
     key: "experiencias",
     title: "Experiências",
     singular: "experiência",
-    description: "Cargos e empresas. A ordem é a da linha do tempo: do mais antigo para o mais recente.",
+    description: "Cargos e empresas, do mais antigo para o mais recente (o site mostra o mais recente primeiro).",
     delegate: delegate(prisma.experience),
     fields: [
       { name: "role", label: "Cargo", type: "text", required: true },
@@ -80,11 +72,10 @@ export const COLLECTIONS: Collection[] = [
         name: "headline",
         label: "Frase de destaque",
         type: "text",
-        help: "Título do capítulo na linha do tempo. Use *asteriscos* para o itálico.",
+        help: "Subtítulo da experiência no site. Use *asteriscos* para o itálico.",
       },
       { name: "summary", label: "Resumo", type: "textarea", rows: 3 },
       { name: "highlights", label: "Conquistas", type: "list", help: "Uma conquista por linha (de preferência com números)." },
-      { name: "shape", label: "Forma 3D do capítulo", type: "select", numeric: true, options: SHAPES },
       { name: "visible", label: "Visível no site", type: "boolean" },
     ],
     summary: (row) => ({

@@ -5,7 +5,6 @@ import { Cursor } from "@/components/site/cursor";
 import { MenuDock } from "@/components/site/menu/menu-dock";
 import { ParticleScene } from "@/components/site/scene/particle-scene";
 import { ScrollProgress } from "@/components/site/scroll-progress";
-import { SiteHeader } from "@/components/site/site-header";
 import { SmoothScroll } from "@/components/site/smooth-scroll";
 import { PageTransition } from "@/components/site/transition/page-transition";
 
@@ -23,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Layout do site público. Elementos fixos (cena 3D, header, menu, overlay)
+// Layout do site público. Elementos fixos (cena 3D, menu, overlay)
 // ficam fora do #smooth-content: o ScrollSmoother aplica transform no
 // conteúdo, o que quebraria `position: fixed` lá dentro.
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +35,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <SmoothScroll>
           <main>{children}</main>
         </SmoothScroll>
-        <SiteHeader />
         <ScrollProgress />
         <MenuDock />
         <Cursor />

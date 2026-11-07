@@ -37,6 +37,25 @@ export const TEXT_GROUPS: TextGroup[] = [
     ],
   },
   {
+    title: "Página Sobre mim",
+    fields: [
+      { key: "about.tldr.title", label: "Título do resumo", default: "Resumo em *30 segundos*" },
+      { key: "about.bio.label", label: "Rótulo da bio", default: "Quem sou" },
+      { key: "process.title", label: "Título — Como eu trabalho", default: "Como eu *trabalho*" },
+      { key: "beyond.title", label: "Título — Além do trabalho", default: "Além do *trabalho*" },
+      { key: "beyond.values", label: "Coluna — valores", default: "Valores" },
+      { key: "beyond.hobbies", label: "Coluna — hobbies", default: "Fora do trabalho" },
+      { key: "beyond.goals", label: "Coluna — o que busco", default: "O que busco" },
+    ],
+  },
+  {
+    title: "Página Experiência",
+    fields: [
+      { key: "education.title", label: "Título — formação", default: "Formação" },
+      { key: "awards.title", label: "Título — prêmios", default: "Reconhecimentos" },
+    ],
+  },
+  {
     title: "Habilidades",
     fields: [
       { key: "skills.label", label: "Rótulo da seção", default: "Habilidades & stacks" },
@@ -44,7 +63,7 @@ export const TEXT_GROUPS: TextGroup[] = [
     ],
   },
   {
-    title: "Carreira",
+    title: "Experiência (linha do tempo)",
     fields: [
       { key: "career.label", label: "Rótulo da seção", default: career.label },
       { key: "career.title", label: "Título", default: career.title },
@@ -97,26 +116,12 @@ export const TEXT_GROUPS: TextGroup[] = [
         default: "Um pouco sobre como eu penso, trabalho e quais ferramentas uso para tirar ideias do papel.",
         multiline: true,
       },
-      { key: "page.carreira.title", label: "Carreira — título", default: "Uma trajetória em *camadas*." },
+      { key: "page.carreira.title", label: "Experiência — título", default: "Uma trajetória em *camadas*." },
       {
         key: "page.carreira.text",
-        label: "Carreira — texto",
+        label: "Experiência — texto",
         default:
           "Da formação aos produtos que construo hoje — cada capítulo acrescentou uma camada ao meu jeito de trabalhar.",
-        multiline: true,
-      },
-      { key: "page.projetos.title", label: "Projetos — título", default: "Coisas que eu *construí*." },
-      {
-        key: "page.projetos.text",
-        label: "Projetos — texto",
-        default: "Uma seleção de produtos, experimentos e estudos — do problema à solução no ar.",
-        multiline: true,
-      },
-      { key: "page.depoimentos.title", label: "Depoimentos — título", default: "Quem já trabalhou *comigo*." },
-      {
-        key: "page.depoimentos.text",
-        label: "Depoimentos — texto",
-        default: "Colegas, líderes e clientes contando como foi construir junto.",
         multiline: true,
       },
     ],
