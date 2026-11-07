@@ -79,6 +79,8 @@ export const skills: SkillGroup[] = [
 ];
 
 export type CareerChapter = {
+  // Conquistas (vêm das experiências cadastradas no admin).
+  highlights?: string[];
   period: string;
   role: string;
   place: string;
