@@ -49,6 +49,11 @@ export async function createLinksFromProfile() {
 export async function resetLinkClicks(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.linkItem.update({ where: { id }, data: { clicks: 0 } });
+  if (id === "auto:cv" || id === "auto:portfolio") {
+    const field = id === "auto:cv" ? "linksCvClicks" : "linksPortfolioClicks";
+    await prisma.profile.update({ where: { id: "main" }, data: { [field]: 0 } });
+  } else {
+    await prisma.linkItem.update({ where: { id }, data: { clicks: 0 } });
+  }
   refresh();
 }

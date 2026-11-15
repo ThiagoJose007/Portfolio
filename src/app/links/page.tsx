@@ -95,6 +95,7 @@ export default async function LinksPage() {
   if (settings.linksShowPortfolio) {
     cards.push({
       key: "portfolio",
+      id: "auto:portfolio",
       title: "Portfolio",
       description: "Projetos, experiência e contato",
       url: "/",
@@ -107,6 +108,7 @@ export default async function LinksPage() {
   if (settings.linksShowCv && profile.cvUrl) {
     cards.push({
       key: "cv",
+      id: "auto:cv",
       title: "Currículo",
       description: "PDF · baixar",
       url: profile.cvUrl,

@@ -18,7 +18,14 @@ export default async function AdminLinksPage({ searchParams }: { searchParams: P
   ]);
   const move = moveCollectionItem.bind(null, "links");
   const remove = deleteCollectionItem.bind(null, "links");
-  const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+  const autoCards = profile
+    ? [
+        { id: "auto:portfolio", title: "Portfolio", icon: "briefcase", clicks: profile.linksPortfolioClicks, on: profile.linksShowPortfolio },
+        { id: "auto:cv", title: "Currículo", icon: "file", clicks: profile.linksCvClicks, on: profile.linksShowCv && !!profile.cvUrl },
+      ]
+    : [];
+  const totalClicks =
+    links.reduce((sum, link) => sum + link.clicks, 0) + autoCards.reduce((sum, card) => sum + card.clicks, 0);
 
   return (
     <div className="mx-auto max-w-4xl p-8">
@@ -118,8 +125,37 @@ export default async function AdminLinksPage({ searchParams }: { searchParams: P
             </li>
           )}
         </ul>
+        {autoCards.length > 0 && (
+          <>
+            <h3 className="mb-2 mt-6 text-sm font-medium text-gray-700">Cards automáticos</h3>
+            <ul className="divide-y divide-gray-200 rounded border border-gray-200">
+              {autoCards.map((card) => (
+                <li key={card.id} className="flex items-center gap-4 p-4">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gray-100">
+                    <LinkIcon name={card.icon} className="size-5" />
+                  </span>
+                  <p className="min-w-0 flex-1 font-medium">
+                    {card.title}
+                    {!card.on && (
+                      <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-500">
+                        Desligado
+                      </span>
+                    )}
+                  </p>
+                  <form action={resetLinkClicks} title="Zerar contagem">
+                    <input type="hidden" name="id" value={card.id} />
+                    <button type="submit" className="text-sm text-gray-500">
+                      {card.clicks} clique(s)
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
         <p className="mt-2 text-xs text-gray-500">
-          Clique na contagem para zerá-la. O card do perfil (foto, nome, cargo) sempre aparece primeiro.
+          Clique na contagem para zerá-la. O card do perfil (foto, nome, cargo) sempre aparece primeiro. Os cards
+          automáticos são ligados e desligados logo abaixo.
         </p>
       </section>
 

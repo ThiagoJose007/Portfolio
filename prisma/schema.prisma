@@ -105,30 +105,32 @@ enum ApplicationStatus {
 
 // Registro único (id = "main") com os dados pessoais e o TL;DR.
 model Profile {
-  id                 String   @id @default("main")
-  name               String
-  initials           String
-  role               String
-  location           String
-  timeZone           String   @default("America/Sao_Paulo")
-  availability       String
-  email              String
-  photo              String?
-  cvUrl              String?
-  socials            Json     @default("[]") // [{ label, href }]
-  bio                String   @default("")
-  tldrCareer         String   @default("")
-  tldrBasedIn        String   @default("")
-  tldrSkillset       String   @default("")
-  tldrExperience     String   @default("")
-  tldrLanguages      String   @default("")
-  freelanceEnabled   Boolean  @default(false)
+  id                   String   @id @default("main")
+  name                 String
+  initials             String
+  role                 String
+  location             String
+  timeZone             String   @default("America/Sao_Paulo")
+  availability         String
+  email                String
+  photo                String?
+  cvUrl                String?
+  socials              Json     @default("[]") // [{ label, href }]
+  bio                  String   @default("")
+  tldrCareer           String   @default("")
+  tldrBasedIn          String   @default("")
+  tldrSkillset         String   @default("")
+  tldrExperience       String   @default("")
+  tldrLanguages        String   @default("")
+  freelanceEnabled     Boolean  @default(false)
   // Página /links (bento de links da bio)
-  linksPhoto         String?
-  linksBio           String   @default("")
-  linksShowCv        Boolean  @default(true)
-  linksShowPortfolio Boolean  @default(true)
-  updatedAt          DateTime @updatedAt
+  linksPhoto           String?
+  linksBio             String   @default("")
+  linksShowCv          Boolean  @default(true)
+  linksShowPortfolio   Boolean  @default(true)
+  linksCvClicks        Int      @default(0)
+  linksPortfolioClicks Int      @default(0)
+  updatedAt            DateTime @updatedAt
 
   @@map("profile")
 }
