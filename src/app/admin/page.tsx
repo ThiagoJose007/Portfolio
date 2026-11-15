@@ -60,6 +60,10 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
           <p className="font-medium">Candidaturas</p>
           <p className="text-sm text-gray-500">Versões do site por empresa.</p>
         </Link>
+        <Link href="/admin/links" className={cardClass}>
+          <p className="font-medium">Links</p>
+          <p className="text-sm text-gray-500">Página /links para a bio: cards, ícones, foto e CV.</p>
+        </Link>
       </div>
 
       <h2 className="mb-3 text-lg font-medium">Conteúdo</h2>

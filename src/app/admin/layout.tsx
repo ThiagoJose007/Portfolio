@@ -9,6 +9,7 @@ const links = [
   { href: "/admin/textos", label: "Textos" },
   { href: "/admin/projects", label: "Projetos" },
   { href: "/admin/applications", label: "Candidaturas" },
+  { href: "/admin/links", label: "Links" },
 ];
 
 export default function AdminLayout({

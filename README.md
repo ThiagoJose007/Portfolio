@@ -117,6 +117,12 @@ Todo o conteúdo é editado pelo admin e fica no banco:
 | `/admin/projects` | Projetos: card, estudo de caso, capa e galeria |
 | `/admin/applications` | Candidaturas (versões por empresa) |
 
+**Página de links (`/links`):** página para a bio do Instagram, LinkedIn, YouTube etc., em
+bento grid. Em `/admin/links` você adiciona, edita, reordena e esconde cards; escolhe o ícone
+(ou deixa "Automático", que reconhece YouTube, Medium, Substack, GitHub…), o tamanho
+(1×1, 2×1, 1×2, 2×2), a cor e uma imagem de fundo; e vê quantos cliques cada card teve. A
+foto, a frase curta e o CV da página também ficam lá. Ícones de marcas: `simple-icons` (CC0).
+
 **Primeira vez:** abra `/admin` e clique em **Importar conteúdo atual**. Isso copia o
 conteúdo de fábrica (`src/content/site.ts`) para o banco; até lá, o site mostra esse
 conteúdo de fábrica. A importação nunca sobrescreve o que já existe.

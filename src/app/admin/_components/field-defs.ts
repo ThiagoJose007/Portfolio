@@ -1,6 +1,6 @@
 // Definição de campos dos formulários do admin e leitura do FormData.
 
-export type FieldType = "text" | "textarea" | "list" | "number" | "boolean" | "select" | "image" | "file" | "gallery";
+export type FieldType = "text" | "textarea" | "list" | "number" | "boolean" | "select" | "image" | "file" | "gallery" | "icon";
 
 export type FieldDef = {
   name: string;
