@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { readFields } from "../_components/field-defs";
-import { getCollection } from "./collections";
+import { getCollection, listPathOf } from "./collections";
 
 function collectionOrThrow(key: string) {
   const collection = getCollection(key);
@@ -12,7 +12,8 @@ function collectionOrThrow(key: string) {
 }
 
 const refresh = (key: string) => {
-  revalidatePath(`/admin/conteudo/${key}`);
+  const collection = getCollection(key);
+  if (collection) revalidatePath(listPathOf(collection));
   revalidatePath("/", "layout");
 };
 
@@ -30,7 +31,7 @@ export async function saveCollectionItem(key: string, id: string | null, formDat
   }
 
   refresh(key);
-  redirect(`/admin/conteudo/${key}`);
+  redirect(listPathOf(collection));
 }
 
 export async function deleteCollectionItem(key: string, formData: FormData) {

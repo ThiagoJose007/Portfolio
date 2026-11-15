@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Field, SubmitButton } from "../../../_components/fields";
-import { getCollection, type Row } from "../../collections";
+import { getCollection, listPathOf, type Row } from "../../collections";
 import { saveCollectionItem } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function CollectionItemPage({
 
   return (
     <div className="mx-auto max-w-2xl p-8">
-      <Link href={`/admin/conteudo/${key}`} className="text-sm text-gray-500 hover:underline">
+      <Link href={listPathOf(collection)} className="text-sm text-gray-500 hover:underline">
         ← {collection.title}
       </Link>
       <h1 className="mb-6 mt-3 text-2xl font-semibold">

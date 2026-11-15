@@ -31,7 +31,11 @@ export type Collection = {
   scope?: Where;
   fields: FieldDef[];
   summary: (row: Row) => { title: string; subtitle?: string; hidden?: boolean };
+  // Tela própria da lista (padrão: /admin/conteudo/<key>).
+  listPath?: string;
 };
+
+export const listPathOf = (collection: Collection) => collection.listPath ?? `/admin/conteudo/${collection.key}`;
 
 const delegate = (model: unknown) => () => model as Delegate;
 
@@ -54,6 +58,59 @@ const aboutItems = (
   ],
   summary: (row) => ({ title: String(row.title), subtitle: String(row.text ?? "") }),
 });
+
+// Cards da página /links. Fica fora do painel "Conteúdo" (tem tela própria).
+export const LINKS_COLLECTION: Collection = {
+  key: "links",
+  title: "Links",
+  singular: "link",
+  description: "Cards da página /links.",
+  listPath: "/admin/links",
+  delegate: delegate(prisma.linkItem),
+  fields: [
+    { name: "title", label: "Título", type: "text", required: true, placeholder: "Meu canal no YouTube" },
+    {
+      name: "url",
+      label: "Link",
+      type: "file",
+      required: true,
+      help: "Cole o endereço (https://…, mailto:…, https://wa.me/…) ou envie um PDF.",
+    },
+    { name: "description", label: "Descrição curta (opcional)", type: "text", placeholder: "Vídeos sobre design e código" },
+    { name: "icon", label: "Ícone", type: "icon" },
+    {
+      name: "size",
+      label: "Tamanho do card",
+      type: "select",
+      options: [
+        { value: "small", label: "Pequeno (1 × 1)" },
+        { value: "wide", label: "Largo (2 × 1)" },
+        { value: "tall", label: "Alto (1 × 2)" },
+        { value: "large", label: "Grande (2 × 2)" },
+      ],
+    },
+    {
+      name: "accent",
+      label: "Cor do card",
+      type: "select",
+      options: [
+        { value: "default", label: "Escuro (padrão)" },
+        { value: "accent", label: "Laranja" },
+        { value: "light", label: "Claro" },
+        { value: "electric", label: "Azul" },
+      ],
+    },
+    {
+      name: "image",
+      label: "Imagem de fundo (opcional)",
+      type: "image",
+      nullable: true,
+      help: "Ótimo para cards largos/grandes: capa de vídeo, artigo ou projeto.",
+    },
+    { name: "visible", label: "Visível na página", type: "boolean" },
+  ],
+  summary: (row) => ({ title: String(row.title), subtitle: String(row.url), hidden: row.visible === false }),
+};
 
 export const COLLECTIONS: Collection[] = [
   {
@@ -212,5 +269,5 @@ export const COLLECTIONS: Collection[] = [
 ];
 
 export function getCollection(key: string) {
-  return COLLECTIONS.find((collection) => collection.key === key) ?? null;
+  return [...COLLECTIONS, LINKS_COLLECTION].find((collection) => collection.key === key) ?? null;
 }
