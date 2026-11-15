@@ -123,6 +123,10 @@ bento grid. Em `/admin/links` você adiciona, edita, reordena e esconde cards; e
 (1×1, 2×1, 1×2, 2×2), a cor e uma imagem de fundo; e vê quantos cliques cada card teve. A
 foto, a frase curta e o CV da página também ficam lá. Ícones de marcas: `simple-icons` (CC0).
 
+**Ícone do site (favicon):** em `/admin/perfil` → "Ícone do site". Sem imagem, o site gera um
+círculo laranja com as suas iniciais (`/site-icon`). Navegadores guardam o ícone em cache: se não
+mudar na hora, recarregue a página com Ctrl+F5.
+
 **Primeira vez:** abra `/admin` e clique em **Importar conteúdo atual**. Isso copia o
 conteúdo de fábrica (`src/content/site.ts`) para o banco; até lá, o site mostra esse
 conteúdo de fábrica. A importação nunca sobrescreve o que já existe.

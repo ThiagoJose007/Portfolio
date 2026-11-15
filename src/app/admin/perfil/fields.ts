@@ -11,6 +11,13 @@ export const PROFILE_SECTIONS: { title: string; description?: string; fields: Fi
       { name: "timeZone", label: "Fuso horário", type: "text", required: true, help: "Ex.: America/Maceio — usado no relógio do topo." },
       { name: "availability", label: "Disponibilidade", type: "text", required: true },
       { name: "photo", label: "Foto", type: "image", nullable: true },
+      {
+        name: "favicon",
+        label: "Ícone do site (aba do navegador)",
+        type: "image",
+        nullable: true,
+        help: "Imagem quadrada (PNG, ideal 512×512). Vazio = círculo laranja com as suas iniciais.",
+      },
     ],
   },
   {

@@ -114,6 +114,7 @@ model Profile {
   availability         String
   email                String
   photo                String?
+  favicon              String? // ícone da aba do navegador (vazio = iniciais)
   cvUrl                String?
   socials              Json     @default("[]") // [{ label, href }]
   bio                  String   @default("")

@@ -23,6 +23,11 @@ const instrumentSerif = Instrument_Serif({
 // Título e descrição do site público vêm do Perfil (ver app/(site)/layout.tsx).
 export const metadata: Metadata = {
   title: profile.name,
+  // Ícone gerado/escolhido em /admin/perfil (ver app/site-icon/route.tsx).
+  icons: {
+    icon: [{ url: "/site-icon?size=64", type: "image/png", sizes: "64x64" }],
+    apple: [{ url: "/site-icon?size=180", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({
