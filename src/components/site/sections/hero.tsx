@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { afterReveal, scrollToTarget } from "../transition/navigation";
 
@@ -27,6 +27,7 @@ type HeroProps = {
 // (o TL;DR do Perfil) e as ações principais.
 export function Hero({ eyebrow, title, intro, cta }: HeroProps) {
   const { hero, profile } = useSiteContent();
+  const ui = useUi();
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -67,10 +68,10 @@ export function Hero({ eyebrow, title, intro, cta }: HeroProps) {
   );
 
   const facts = [
-    { label: "Cargo", value: profile.role },
-    { label: "Carreira", value: profile.tldr.career },
-    { label: "Base", value: profile.tldr.basedIn || profile.location },
-    { label: "Status", value: profile.availability },
+    { label: ui.hero.facts.role, value: profile.role },
+    { label: ui.hero.facts.career, value: profile.tldr.career },
+    { label: ui.hero.facts.base, value: profile.tldr.basedIn || profile.location },
+    { label: ui.hero.facts.status, value: profile.availability },
   ].filter((fact) => fact.value.trim());
 
   const linkedin = profile.socials.find((social) => /linkedin/i.test(social.label + social.href));
@@ -103,7 +104,7 @@ export function Hero({ eyebrow, title, intro, cta }: HeroProps) {
               onClick={() => scrollToTarget("#projetos")}
               className="rounded-full bg-cream px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-accent"
             >
-              Ver projetos ↓
+              {ui.hero.viewProjects}
             </button>
             {profile.cvUrl && (
               <a
@@ -112,7 +113,7 @@ export function Hero({ eyebrow, title, intro, cta }: HeroProps) {
                 rel="noreferrer"
                 className="rounded-full border border-cream/30 px-6 py-3 text-sm transition-colors hover:border-cream"
               >
-                Baixar CV
+                {ui.hero.downloadCv}
               </a>
             )}
             {linkedin ? (
@@ -130,7 +131,7 @@ export function Hero({ eyebrow, title, intro, cta }: HeroProps) {
                 onClick={() => scrollToTarget("#contato")}
                 className="rounded-full border border-cream/30 px-6 py-3 text-sm transition-colors hover:border-cream"
               >
-                Contato
+                {ui.hero.contact}
               </button>
             )}
           </div>

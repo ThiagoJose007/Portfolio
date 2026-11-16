@@ -3,24 +3,25 @@
 import { useRef } from "react";
 import { useReveal } from "@/animations/use-reveal";
 import { Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { TransitionLink } from "../transition/transition-link";
 import { useSitePaths } from "../version-path";
 
 // Ponte no fim da página inicial: para quem quer ir além dos projetos.
 export function NextSteps() {
   const { profile } = useSiteContent();
+  const ui = useUi();
   const { about, experience } = useSitePaths();
   const rootRef = useRef<HTMLElement>(null);
   useReveal(rootRef);
 
   const cards = [
-    { href: about, eyebrow: "Quem sou", title: "Sobre mim", text: "Como penso, como trabalho e as ferramentas que uso." },
+    { href: about, eyebrow: ui.next.aboutEyebrow, title: ui.next.aboutTitle, text: ui.next.aboutText },
     {
       href: experience,
-      eyebrow: "Trajetória",
-      title: "Experiência",
-      text: "Empresas, cargos e o que entreguei em cada uma.",
+      eyebrow: ui.next.expEyebrow,
+      title: ui.next.expTitle,
+      text: ui.next.expText,
     },
   ];
 
@@ -29,7 +30,7 @@ export function NextSteps() {
 
   return (
     <section ref={rootRef} className="relative px-5 pb-[10vh] md:px-8">
-      <Eyebrow>Continue</Eyebrow>
+      <Eyebrow>{ui.next.label}</Eyebrow>
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {cards.map((card) => (
           <TransitionLink key={card.href} href={card.href} data-reveal className={cardClass}>
@@ -50,19 +51,19 @@ export function NextSteps() {
             <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">PDF</span>
             <span>
               <span className="flex items-center justify-between text-3xl font-medium tracking-tight">
-                Currículo
+                {ui.next.cvTitle}
                 <span aria-hidden className="transition-transform group-hover:translate-y-1">
                   ↓
                 </span>
               </span>
-              <span className="mt-2 block text-cream/65">Tudo em uma página, para guardar ou encaminhar.</span>
+              <span className="mt-2 block text-cream/65">{ui.next.cvText}</span>
             </span>
           </a>
         ) : (
           <TransitionLink href="#contato" data-reveal className={cardClass}>
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">Vamos conversar</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">{ui.next.contactEyebrow}</span>
             <span className="flex items-center justify-between text-3xl font-medium tracking-tight">
-              Contato <span aria-hidden>↓</span>
+              {ui.next.contactTitle} <span aria-hidden>↓</span>
             </span>
           </TransitionLink>
         )}

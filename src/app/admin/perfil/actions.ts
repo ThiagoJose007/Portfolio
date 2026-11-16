@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
-import { readFields } from "../_components/field-defs";
+import { readFields, readTranslations } from "../_components/field-defs";
+import { saveTranslations } from "@/lib/i18n/translations";
 import { PROFILE_FIELDS } from "./fields";
 
 // "LinkedIn | https://…" → { label, href }
@@ -28,6 +29,7 @@ export async function saveProfile(formData: FormData) {
     create: { ...values, id: "main" },
     update: values,
   });
+  await saveTranslations("profile", "main", readTranslations(PROFILE_FIELDS, formData));
 
   revalidatePath("/", "layout");
   redirect("/admin/perfil?salvo=1");

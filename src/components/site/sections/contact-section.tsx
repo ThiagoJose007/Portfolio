@@ -5,7 +5,7 @@ import { useMagnetic } from "@/animations/use-magnetic";
 import { useReveal } from "@/animations/use-reveal";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { SectionCurve } from "../section-curve";
 import { scrollToTarget } from "../transition/navigation";
@@ -21,6 +21,7 @@ export function ContactSection({
   text?: string;
 }) {
   const { contact, profile } = useSiteContent();
+  const ui = useUi();
   const text = textProp ?? contact.text;
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -88,7 +89,7 @@ export function ContactSection({
           onClick={() => scrollToTarget(0)}
           className="link-underline justify-self-start uppercase text-cream md:justify-self-end"
         >
-          Voltar ao topo ↑
+          {ui.contact.backToTop}
         </button>
       </footer>
     </section>

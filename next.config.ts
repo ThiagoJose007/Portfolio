@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   // Endereços da estrutura antiga continuam funcionando.
+  // Navegadores e leitores de link também pedem /favicon.ico direto.
+  async rewrites() {
+    return [{ source: "/favicon.ico", destination: "/site-icon?size=48" }];
+  },
   async redirects() {
     return [
       { source: "/p/:slug", destination: "/:slug", permanent: false },

@@ -1,4 +1,4 @@
-import type { FieldDef } from "./field-defs";
+import { PT_SUFFIX, type FieldDef } from "./field-defs";
 import { LINK_ICONS, LinkIcon } from "@/lib/link-icons";
 import { GalleryField, UploadField } from "./upload-field";
 
@@ -8,7 +8,24 @@ const inputClass = "rounded border border-gray-300 px-3 py-2";
 
 const asString = (value: unknown) => (value === null || value === undefined ? "" : String(value));
 
-export function Field({ field, value }: { field: FieldDef; value?: unknown }) {
+// `values` traz também os campos em português ("<campo>__pt").
+export function Field({ field, value, values }: { field: FieldDef; value?: unknown; values?: Record<string, unknown> }) {
+  const current = values ? values[field.name] : value;
+  if (field.translatable) {
+    return (
+      <div className="grid gap-3 rounded border border-dashed border-gray-200 p-3 md:grid-cols-2">
+        <SingleField field={{ ...field, label: `${field.label} · EN` }} value={current} />
+        <SingleField
+          field={{ ...field, name: field.name + PT_SUFFIX, label: `${field.label} · PT`, required: false, help: undefined }}
+          value={values?.[field.name + PT_SUFFIX]}
+        />
+      </div>
+    );
+  }
+  return <SingleField field={field} value={current} />;
+}
+
+function SingleField({ field, value }: { field: FieldDef; value?: unknown }) {
   const { name, label, type, required, help, placeholder, options, rows } = field;
   const hint = help && <span className="text-xs text-gray-500">{help}</span>;
 

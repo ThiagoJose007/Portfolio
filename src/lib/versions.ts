@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { toShowcaseProject, type ShowcaseProject } from "@/lib/projects";
 import { getSiteContent, toExperienceItem } from "@/lib/content/load";
 import type { ExperienceItem } from "@/lib/content/types";
+import type { Locale } from "@/lib/i18n/config";
+import { loadTranslationMap, localize } from "@/lib/i18n/translations";
+import { UI } from "@/lib/i18n/ui";
 
 // Uma "versão" do site é o que um visitante vê: a versão geral (servida em
 // "/") ou a versão de uma candidatura (servida em "/<slug>"). Os dados
@@ -16,6 +19,9 @@ export type SiteVersion = {
   // Prefixo das URLs desta versão: "" na geral, "/<slug>" nas candidaturas.
   basePath: string;
   companyName: string | null;
+  locale: Locale;
+  // Projetos com senha abrem direto nesta versão.
+  unlockProtected: boolean;
   hero: { eyebrow: string; title: string; intro: string; cta: string | null };
   projects: ShowcaseProject[];
   experiences: ExperienceItem[];
@@ -33,33 +39,41 @@ type ApplicationWithRelations = NonNullable<
 const isExpired = (application: { expiresAt: Date | null }) =>
   !!application.expiresAt && application.expiresAt.getTime() < Date.now();
 
-async function buildVersion(application: ApplicationWithRelations | null): Promise<SiteVersion> {
-  const content = await getSiteContent();
+async function buildVersion(application: ApplicationWithRelations | null, locale: Locale): Promise<SiteVersion> {
+  const [content, map] = await Promise.all([getSiteContent(locale), loadTranslationMap(locale)]);
+  const ui = UI[locale];
 
   // Sem seleção = tudo o que está marcado como visível.
   let projects: ShowcaseProject[];
   if (application && application.projects.length > 0) {
     projects = application.projects.map(({ project, customDescription, highlighted }) =>
-      toShowcaseProject(project, { description: customDescription, highlighted }),
+      toShowcaseProject(localize("project", project, map), { description: customDescription, highlighted }),
     );
   } else {
     const rows = await prisma.project.findMany({ where: { visible: true }, orderBy: { createdAt: "desc" } });
-    projects = rows.map((row) => toShowcaseProject(row));
+    projects = rows.map((row) => toShowcaseProject(localize("project", row, map)));
   }
 
   const experiences =
     application && application.experiences.length > 0
       ? application.experiences.map(({ experience, customSummary, customHighlights }) =>
-          toExperienceItem(experience, { summary: customSummary, highlights: customHighlights }),
+          toExperienceItem(
+            localize("experience", experience, map),
+            { summary: customSummary, highlights: customHighlights },
+            locale,
+          ),
         )
       : content.experiences;
 
   const isCompany = !!application && !application.isDefault;
+  // Textos da candidatura são escritos no idioma dela. Na versão geral, o
+  // texto de abertura do admin é em inglês; em português vale o do Hero.
+  const customIntro = isCompany || locale === "en" ? application?.introText.trim() : "";
   const hero = {
-    eyebrow: isCompany ? `Para ${application.companyName} — ${application.roleTitle}` : content.hero.eyebrow,
-    title: isCompany ? `Olá, *${application.companyName}*.` : content.hero.title,
-    intro: application?.introText.trim() || content.hero.intro,
-    cta: application?.ctaText ?? null,
+    eyebrow: isCompany ? ui.hero.companyEyebrow(application.companyName, application.roleTitle) : content.hero.eyebrow,
+    title: isCompany ? ui.hero.companyTitle(application.companyName) : content.hero.title,
+    intro: customIntro || content.hero.intro,
+    cta: isCompany || locale === "en" ? (application?.ctaText ?? null) : null,
   };
 
   return {
@@ -67,6 +81,8 @@ async function buildVersion(application: ApplicationWithRelations | null): Promi
     isDefault: !isCompany,
     basePath: isCompany ? `/${application.slug}` : "",
     companyName: isCompany ? application.companyName : null,
+    locale,
+    unlockProtected: isCompany && application.unlockProtected,
     hero,
     projects,
     experiences,
@@ -75,12 +91,12 @@ async function buildVersion(application: ApplicationWithRelations | null): Promi
 
 // Versão geral: a candidatura marcada como "versão geral" ou, se nenhuma
 // estiver, todos os projetos e experiências visíveis.
-export const getDefaultVersion = cache(async () => {
+export const getDefaultVersion = cache(async (locale: Locale) => {
   const application = await prisma.application.findFirst({
     where: { isDefault: true },
     include: applicationInclude,
   });
-  return buildVersion(application);
+  return buildVersion(application, locale);
 });
 
 export type VersionLookup =
@@ -88,12 +104,12 @@ export type VersionLookup =
   | { status: "default" } // o slug é o da versão geral: redirecionar para "/"
   | { status: "missing" };
 
-export const getVersionBySlug = cache(async (slug: string): Promise<VersionLookup> => {
+export const getVersionBySlug = cache(async (slug: string, locale: Locale): Promise<VersionLookup> => {
   const application = await prisma.application.findUnique({ where: { slug }, include: applicationInclude });
   if (!application) return { status: "missing" };
   if (application.isDefault) return { status: "default" };
   if (application.status === "ARCHIVED" || isExpired(application)) return { status: "missing" };
-  return { status: "ok", version: await buildVersion(application) };
+  return { status: "ok", version: await buildVersion(application, locale) };
 });
 
 const BOT = /bot|crawl|spider|preview|facebookexternalhit|whatsapp|slack|telegram|discord|linkedin|embedly|curl|wget/i;

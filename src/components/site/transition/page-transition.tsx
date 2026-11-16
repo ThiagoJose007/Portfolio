@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useSiteContent } from "../content-context";
-import { pageLabel } from "../version-path";
+import { useSiteContent, useUi } from "../content-context";
+import { pageKey } from "../version-path";
+import type { UiStrings } from "@/lib/i18n/ui";
 import { gsap, ScrollTrigger, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import {
   MENU_CLOSE_EVENT,
@@ -48,13 +49,14 @@ function waveTimeline(paths: SVGPathElement[], mode: Mode) {
   return tl;
 }
 
-function labelFor(pathname: string, name: string) {
-  const label = pageLabel(pathname);
-  return label === "Início" ? name : label;
+function labelFor(pathname: string, name: string, ui: UiStrings) {
+  const key = pageKey(pathname);
+  return key === "home" ? name : ui.nav[key];
 }
 
 export function PageTransition() {
   const { name } = useSiteContent().profile;
+  const ui = useUi();
   const router = useRouter();
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -110,7 +112,7 @@ export function PageTransition() {
 
       if (labelRef.current) {
         const text = labelRef.current.querySelector("[data-label]");
-        if (text) text.textContent = labelFor(url.pathname, name);
+        if (text) text.textContent = labelFor(url.pathname, name, ui);
       }
       if (counterRef.current) counterRef.current.textContent = "";
 
@@ -127,7 +129,7 @@ export function PageTransition() {
       if (prefersReducedMotion()) tl.timeScale(2.5);
     });
     return registerNavigator(cover);
-  }, [router, contextSafe, name]);
+  }, [router, contextSafe, name, ui]);
 
   // A nova rota já foi montada (por baixo do overlay): zera o scroll,
   // recalcula os ScrollTriggers e revela.

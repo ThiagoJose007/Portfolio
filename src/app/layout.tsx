@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { profile } from "@/content/site";
+import { HTML_LANG } from "@/lib/i18n/config";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,16 +25,21 @@ const instrumentSerif = Instrument_Serif({
 // Título e descrição do site público vêm do Perfil (ver app/(site)/layout.tsx).
 export const metadata: Metadata = {
   title: profile.name,
+  // Ícone gerado/escolhido em /admin/perfil (ver app/site-icon/route.tsx).
+  icons: {
+    icon: [{ url: "/site-icon?size=64", type: "image/png", sizes: "64x64" }],
+    apple: [{ url: "/site-icon?size=180", sizes: "180x180" }],
+  },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html
-      lang="pt-BR"
+      lang={HTML_LANG[await getLocale()]}
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

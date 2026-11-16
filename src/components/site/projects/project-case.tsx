@@ -9,6 +9,7 @@ import { useSceneSection } from "../scene/use-scene-section";
 import { afterReveal } from "../transition/navigation";
 import { TransitionLink } from "../transition/transition-link";
 import { useSitePaths } from "../version-path";
+import { useUi } from "../content-context";
 import { ProjectCover } from "./project-cover";
 import { gsap, useGSAP } from "@/lib/gsap";
 
@@ -35,6 +36,7 @@ export function ProjectCase({
   next: ShowcaseProject | null;
 }) {
   const { home, project: projectPath } = useSitePaths();
+  const ui = useUi();
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -51,17 +53,17 @@ export function ProjectCase({
   );
 
   const meta = [
-    { label: "Meu papel", value: project.role },
-    { label: "Cliente", value: project.client },
-    { label: "Ano", value: project.year },
-    { label: "Stack", value: project.tags.join(", ") },
+    { label: ui.project.role, value: project.role },
+    { label: ui.project.client, value: project.client },
+    { label: ui.project.year, value: project.year },
+    { label: ui.project.stack, value: project.tags.join(", ") },
   ].filter((item) => item.value);
 
   const chapters = [
-    { label: "Contexto", text: project.description },
-    { label: "Problema", text: project.problem },
-    { label: "Processo e decisões", text: project.process },
-    { label: "Resultado", text: project.outcome },
+    { label: ui.project.context, text: project.description },
+    { label: ui.project.problem, text: project.problem },
+    { label: ui.project.process, text: project.process },
+    { label: ui.project.outcome, text: project.outcome },
   ].filter((item): item is { label: string; text: string } => !!item.text?.trim());
 
   // As imagens da galeria se intercalam com os capítulos do texto.
@@ -71,9 +73,9 @@ export function ProjectCase({
   return (
     <article ref={rootRef} className="relative px-5 pb-[12vh] pt-[22vh] md:px-8">
       <div data-case-fade className="flex items-center justify-between">
-        <Eyebrow index={`${String(position).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}>Projeto</Eyebrow>
+        <Eyebrow index={`${String(position).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}>{ui.project.eyebrow}</Eyebrow>
         <TransitionLink href={`${home}#projetos`} className="link-underline font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-          ← Todos os projetos
+          {ui.project.all}
         </TransitionLink>
       </div>
 
@@ -106,7 +108,7 @@ export function ProjectCase({
               rel="noreferrer"
               className="rounded-full bg-cream px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-accent"
             >
-              Ver ao vivo ↗
+              {ui.project.live}
             </a>
           )}
           {project.repoUrl && (
@@ -116,7 +118,7 @@ export function ProjectCase({
               rel="noreferrer"
               className="rounded-full border border-cream/30 px-5 py-2.5 text-sm transition-colors hover:border-cream"
             >
-              Repositório ↗
+              {ui.project.repo}
             </a>
           )}
         </div>
@@ -153,7 +155,7 @@ export function ProjectCase({
             {video.kind === "iframe" ? (
               <iframe
                 src={video.src}
-                title={`Vídeo — ${project.title}`}
+                title={ui.project.video(project.title)}
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowFullScreen
                 className="size-full"
@@ -181,7 +183,7 @@ export function ProjectCase({
           className="group mt-[14vh] flex items-end justify-between gap-6 border-t border-cream/15 pt-8"
         >
           <span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">Próximo projeto</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">{ui.project.next}</span>
             <span className="mt-3 block text-[clamp(2rem,5vw,5rem)] font-medium leading-none tracking-[-0.035em]">
               {next.title}
             </span>

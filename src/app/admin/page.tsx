@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { COLLECTIONS } from "./conteudo/collections";
-import { importDefaultContent } from "./actions";
+import { applySuggestedCopy, importDefaultContent } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 const cardClass = "block rounded border border-gray-200 p-4 hover:border-gray-400";
 
-export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ importado?: string }> }) {
-  const { importado } = await searchParams;
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ importado?: string; aplicado?: string }>;
+}) {
+  const { importado, aplicado } = await searchParams;
   const [profile, counts] = await Promise.all([
     prisma.profile.findUnique({ where: { id: "main" } }),
     Promise.all(
@@ -41,6 +45,37 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
           </form>
         </div>
       )}
+
+      {aplicado === "1" && (
+        <p className="mb-6 rounded bg-green-50 p-3 text-sm text-green-700">
+          Textos aplicados em inglês e português. Os estudos de caso novos estão em Projetos como ocultos: revise, adicione
+          imagens e publique.
+        </p>
+      )}
+      {aplicado === "confirme" && (
+        <p className="mb-6 rounded bg-amber-50 p-3 text-sm text-amber-800">Marque a confirmação para aplicar os textos.</p>
+      )}
+
+      <details className="mb-8 rounded border border-gray-200 p-4 text-sm">
+        <summary className="cursor-pointer font-medium">Aplicar textos sugeridos (baseados no seu LinkedIn, EN + PT)</summary>
+        <p className="mt-3 text-gray-600">
+          Substitui: cargo, disponibilidade, resumo em 30s e bio do Perfil; todos os Textos do site; Experiências,
+          Formação, Números, Habilidades, Como eu trabalho, Valores, O que busco e Prêmios. Remove os depoimentos de
+          exemplo. Cria 4 estudos de caso como rascunho oculto.
+        </p>
+        <p className="mt-2 text-gray-600">
+          Não mexe em: nome, e-mail, foto, CV, redes, ícone, hobbies, freelancer, links, projetos existentes e
+          candidaturas (mas as experiências escolhidas nas candidaturas precisam ser escolhidas de novo).
+        </p>
+        <form action={applySuggestedCopy} className="mt-4 flex flex-wrap items-center gap-4">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="confirm" /> Entendi que isso substitui os textos atuais
+          </label>
+          <button type="submit" className="rounded bg-black px-4 py-2 text-white">
+            Aplicar textos
+          </button>
+        </form>
+      </details>
 
       <h2 className="mb-3 text-lg font-medium">Geral</h2>
       <div className="mb-8 grid gap-3 sm:grid-cols-2">

@@ -1,6 +1,7 @@
-import type { FieldDef } from "../_components/field-defs";
+import { withTranslations, type FieldDef } from "../_components/field-defs";
+import { TRANSLATABLE } from "@/lib/i18n/translations";
 
-export const LINKS_SETTINGS_FIELDS: FieldDef[] = [
+const FIELDS: FieldDef[] = [
   {
     name: "linksPhoto",
     label: "Foto da página de links",
@@ -20,3 +21,5 @@ export const LINKS_SETTINGS_FIELDS: FieldDef[] = [
   { name: "linksShowCv", label: "Mostrar o card do currículo", type: "boolean" },
   { name: "linksShowPortfolio", label: "Mostrar o card do portfolio (site completo)", type: "boolean" },
 ];
+
+export const LINKS_SETTINGS_FIELDS = withTranslations(FIELDS, TRANSLATABLE.profile);

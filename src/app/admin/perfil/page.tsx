@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { Field, SubmitButton } from "../_components/fields";
 import { saveProfile } from "./actions";
 import { PROFILE_SECTIONS } from "./fields";
+import { PT_SUFFIX } from "../_components/field-defs";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,9 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       tldrLanguages: profile.tldr.languages,
     };
   }
+  for (const [field, value] of Object.entries(await getTranslations("profile", "main"))) {
+    values[field + PT_SUFFIX] = value;
+  }
   const socials = Array.isArray(values.socials) ? (values.socials as { label: string; href: string }[]) : [];
   values.socials = socials.map((social) => `${social.label} | ${social.href}`);
 
@@ -40,7 +45,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <legend className="mb-1 text-lg font-medium">{section.title}</legend>
             {section.description && <p className="-mt-2 text-sm text-gray-500">{section.description}</p>}
             {section.fields.map((field) => (
-              <Field key={field.name} field={field} value={values[field.name]} />
+              <Field key={field.name} field={field} values={values} />
             ))}
           </fieldset>
         ))}

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 // Segmentos que pertencem à versão geral. Qualquer outro primeiro segmento é
 // o slug de uma candidatura ("/edge-k7x2q/sobre" → base "/edge-k7x2q").
-const GENERAL_SEGMENTS = new Set(["", "sobre", "experiencia", "projetos"]);
+const GENERAL_SEGMENTS = new Set(["", "sobre", "experiencia", "projetos", "links"]);
 
 export function basePathOf(pathname: string) {
   const segment = pathname.split("/")[1] ?? "";
@@ -26,11 +26,12 @@ export function useSitePaths() {
   return { pathname, base, ...sitePaths(base) };
 }
 
-// Nome da página atual (anel do menu, overlay de transição).
-export function pageLabel(pathname: string) {
+// Página atual (anel do menu, overlay de transição). O nome vem do dicionário.
+export type PageKey = "home" | "about" | "experience" | "project";
+export function pageKey(pathname: string): PageKey {
   const rest = pathname.slice(basePathOf(pathname).length) || "/";
-  if (rest.startsWith("/sobre")) return "Sobre mim";
-  if (rest.startsWith("/experiencia")) return "Experiência";
-  if (rest.startsWith("/projetos/")) return "Projeto";
-  return "Início";
+  if (rest.startsWith("/sobre")) return "about";
+  if (rest.startsWith("/experiencia")) return "experience";
+  if (rest.startsWith("/projetos/")) return "project";
+  return "home";
 }

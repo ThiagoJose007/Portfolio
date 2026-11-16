@@ -6,7 +6,7 @@ import type { ShowcaseProject } from "@/lib/projects";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useAlive } from "@/animations/use-alive";
 import { Accent, Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { navigate, scrollToTarget } from "../transition/navigation";
 import { TransitionLink } from "../transition/transition-link";
@@ -29,6 +29,7 @@ export function ProjectsShowcase({
   index?: string;
 }) {
   const copy = useSiteContent().projects;
+  const ui = useUi();
   const title = titleProp ?? copy.title;
   const rootRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
@@ -136,7 +137,7 @@ export function ProjectsShowcase({
     <div>
       <section id="projetos" ref={rootRef} className="relative overflow-hidden py-24 md:h-svh md:py-0">
         <div className="px-5 md:absolute md:left-8 md:top-[14vh] md:z-10 md:w-[min(26vw,380px)] md:px-0">
-          <Eyebrow index={index}>Projetos</Eyebrow>
+          <Eyebrow index={index}>{ui.showcase.eyebrow}</Eyebrow>
           <h2 className="mt-4 text-[clamp(2rem,3.2vw,3.4rem)] font-medium leading-none tracking-[-0.03em]">
             <Accent text={title} />
           </h2>
@@ -146,7 +147,8 @@ export function ProjectsShowcase({
               {projects.map((project) => (
                 <div key={project.id} data-info className="absolute inset-0">
                   <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-                    {project.highlighted && <span className="mr-2 text-accent">★ destaque</span>}
+                    {project.highlighted && <span className="mr-2 text-accent">{ui.showcase.featured}</span>}
+                    {project.protected && <span className="mr-2 text-cream">{ui.showcase.protected}</span>}
                     {project.tags.slice(0, 3).join(" · ")}
                   </p>
                   <h3 className="mt-3 text-2xl font-medium tracking-tight">{project.title}</h3>
@@ -160,7 +162,7 @@ export function ProjectsShowcase({
                     href={projectPath(project.slug)}
                     className="mt-6 inline-flex items-center gap-2 rounded-full border border-cream/30 px-5 py-2.5 text-sm transition-colors hover:border-cream"
                   >
-                    Ver estudo de caso <span aria-hidden>→</span>
+                    {ui.showcase.viewCase} <span aria-hidden>→</span>
                   </TransitionLink>
                 </div>
               ))}
@@ -170,7 +172,7 @@ export function ProjectsShowcase({
 
         {count === 0 ? (
           <p className="px-5 pt-10 text-muted md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:p-0">
-            Nenhum projeto publicado ainda.
+            {ui.showcase.empty}
           </p>
         ) : (
           <>
@@ -188,7 +190,7 @@ export function ProjectsShowcase({
                   type="button"
                   data-card
                   data-cursor="Ver"
-                  aria-label={`Abrir ${project.title}`}
+                  aria-label={ui.showcase.open(project.title)}
                   onClick={() => onCardClick(i)}
                   className="absolute left-1/2 top-1/2 h-[calc(74vh-24px)] w-[calc(min(30vw,54vh)-24px)] origin-center overflow-hidden rounded-sm"
                 >

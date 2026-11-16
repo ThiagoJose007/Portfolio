@@ -123,6 +123,27 @@ bento grid. Em `/admin/links` você adiciona, edita, reordena e esconde cards; e
 (1×1, 2×1, 1×2, 2×2), a cor e uma imagem de fundo; e vê quantos cliques cada card teve. A
 foto, a frase curta e o CV da página também ficam lá. Ícones de marcas: `simple-icons` (CC0).
 
+**Ícone do site (favicon):** em `/admin/perfil` → "Ícone do site". Sem imagem, o site gera um
+círculo laranja com as suas iniciais (`/site-icon`). Navegadores guardam o ícone em cache: se não
+mudar na hora, recarregue a página com Ctrl+F5.
+
+**Idiomas (inglês e português):** o site é em inglês por padrão, com seletor EN/PT no menu
+(e em `/links`). Os campos de texto do admin têm duas caixas, **EN** e **PT**; sem a versão PT,
+o site mostra o inglês. Cada candidatura tem um idioma (Candidaturas → "Idioma desta
+versão"). A escolha do visitante fica num cookie; `?lang=pt` ou `?lang=en` no link também
+funciona. Quem decide o idioma de cada requisição é o `src/proxy.ts`.
+
+**Projetos com senha:** em Projetos → Acesso, defina uma senha para o estudo de caso. O card
+continua na vitrine, mas o case completo pede a senha (quem acerta fica liberado por 30 dias).
+Nas candidaturas, os projetos com senha abrem direto (opção "Abrir projetos com senha sem
+pedir a senha"). Opcional: `PROJECT_ACCESS_SECRET` para assinar o acesso (padrão: deriva do
+`ADMIN_PASSWORD`).
+
+**Textos sugeridos:** Painel → "Aplicar textos sugeridos" preenche perfil, textos,
+experiências, formação, números, habilidades, processo, valores, "o que busco" e prêmios em EN
+e PT (baseados no LinkedIn, `src/lib/content/linkedin-copy.ts`) e cria 4 estudos de caso como
+rascunho oculto.
+
 **Primeira vez:** abra `/admin` e clique em **Importar conteúdo atual**. Isso copia o
 conteúdo de fábrica (`src/content/site.ts`) para o banco; até lá, o site mostra esse
 conteúdo de fábrica. A importação nunca sobrescreve o que já existe.

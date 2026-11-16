@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import type { AboutItemKind } from "@/generated/prisma/client";
 import { formatPeriod } from "@/lib/content/load";
-import type { FieldDef } from "../_components/field-defs";
+import { withTranslations, type FieldDef } from "../_components/field-defs";
+import { TRANSLATABLE } from "@/lib/i18n/translations";
 
 // Listas editáveis do site. Cada entrada gera, de forma genérica, as telas
 // /admin/conteudo/[chave] (lista, novo, editar) e as ações de salvar,
@@ -23,6 +24,8 @@ export type Delegate = {
 
 export type Collection = {
   key: string;
+  // Entidade das traduções (ver src/lib/i18n/translations.ts).
+  entity: string;
   title: string;
   singular: string;
   description: string;
@@ -47,6 +50,7 @@ const aboutItems = (
   description: string,
 ): Collection => ({
   key,
+  entity: "aboutItem",
   title,
   singular,
   description,
@@ -62,6 +66,7 @@ const aboutItems = (
 // Cards da página /links. Fica fora do painel "Conteúdo" (tem tela própria).
 export const LINKS_COLLECTION: Collection = {
   key: "links",
+  entity: "linkItem",
   title: "Links",
   singular: "link",
   description: "Cards da página /links.",
@@ -115,6 +120,7 @@ export const LINKS_COLLECTION: Collection = {
 export const COLLECTIONS: Collection[] = [
   {
     key: "experiencias",
+  entity: "experience",
     title: "Experiências",
     singular: "experiência",
     description: "Cargos e empresas. A ordem é a da linha do tempo: do mais antigo para o mais recente.",
@@ -157,6 +163,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     key: "formacao",
+  entity: "education",
     title: "Formação",
     singular: "formação",
     description: "Graduação, cursos e certificações.",
@@ -168,10 +175,15 @@ export const COLLECTIONS: Collection[] = [
         name: "kind",
         label: "Tipo",
         type: "select",
-        options: ["Graduação", "Pós-graduação", "Curso", "Certificação", "Bootcamp"].map((value) => ({
-          value,
-          label: value,
-        })),
+        // Chaves fixas; o site mostra o nome no idioma da página.
+        options: [
+          { value: "degree", label: "Graduação" },
+          { value: "postgraduate", label: "Pós-graduação" },
+          { value: "technical", label: "Curso técnico" },
+          { value: "course", label: "Curso" },
+          { value: "certification", label: "Certificação" },
+          { value: "bootcamp", label: "Bootcamp" },
+        ],
       },
       { name: "start", label: "Início", type: "text", nullable: true },
       { name: "end", label: "Conclusão", type: "text", nullable: true, help: "Vazio = em andamento." },
@@ -186,6 +198,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     key: "skills",
+  entity: "skillGroup",
     title: "Habilidades",
     singular: "grupo de habilidades",
     description: "Grupos de stacks (Design, Front-end…).",
@@ -202,6 +215,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     key: "numeros",
+  entity: "stat",
     title: "Números",
     singular: "número",
     description: "Destaques numéricos da seção Sobre (ex.: 5+ anos criando produtos).",
@@ -215,6 +229,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     key: "processo",
+  entity: "processStep",
     title: "Como eu trabalho",
     singular: "etapa",
     description: "Etapas do seu processo de trabalho.",
@@ -237,6 +252,7 @@ export const COLLECTIONS: Collection[] = [
   ),
   {
     key: "premios",
+  entity: "award",
     title: "Prêmios",
     singular: "prêmio",
     description: "Prêmios e reconhecimentos.",
@@ -254,6 +270,7 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     key: "depoimentos",
+  entity: "testimonial",
     title: "Depoimentos",
     singular: "depoimento",
     description: "O que colegas, líderes e clientes dizem sobre você.",
@@ -268,6 +285,9 @@ export const COLLECTIONS: Collection[] = [
   },
 ];
 
+// Coleção com os campos traduzíveis marcados (o formulário mostra EN e PT).
 export function getCollection(key: string) {
-  return [...COLLECTIONS, LINKS_COLLECTION].find((collection) => collection.key === key) ?? null;
+  const collection = [...COLLECTIONS, LINKS_COLLECTION].find((item) => item.key === key);
+  if (!collection) return null;
+  return { ...collection, fields: withTranslations(collection.fields, TRANSLATABLE[collection.entity]) };
 }

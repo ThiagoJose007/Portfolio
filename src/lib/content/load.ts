@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 import type { Experience } from "@/generated/prisma/client";
 import * as defaults from "@/content/site";
 import type { CareerChapter, SceneShape } from "@/content/site";
-import { splitLines, TEXT_DEFAULTS } from "./texts";
+import type { Locale } from "@/lib/i18n/config";
+import { loadTranslationMap, localize, translatedText } from "@/lib/i18n/translations";
+import { educationKindLabel, UI } from "@/lib/i18n/ui";
+import { splitLines, TEXT_DEFAULTS, TEXT_FIELDS } from "./texts";
 import type { ExperienceItem, Profile, SiteContent, SimpleItem, SocialLink } from "./types";
 
 export const formatPeriod = (start?: string | null, end?: string | null, current = "hoje") => {
@@ -31,6 +34,7 @@ const toShape = (value: number): SceneShape => (value >= 0 && value <= 4 ? (valu
 export function toExperienceItem(
   row: Experience,
   overrides: { summary?: string | null; highlights?: unknown } = {},
+  locale: Locale = "en",
 ): ExperienceItem {
   const customHighlights = toStringArray(overrides.highlights);
   return {
@@ -40,7 +44,7 @@ export function toExperienceItem(
     location: row.location,
     start: row.start,
     end: row.end,
-    period: formatPeriod(row.start, row.end),
+    period: formatPeriod(row.start, row.end, UI[locale].period.present),
     headline: row.headline,
     summary: overrides.summary || row.summary,
     highlights: customHighlights.length > 0 ? customHighlights : toStringArray(row.highlights),
@@ -115,19 +119,30 @@ function defaultContent(): ContentData {
   };
 }
 
-async function loadFromDatabase() {
-  const profileRow = await prisma.profile.findUnique({ where: { id: "main" } });
-  if (!profileRow) return null;
+async function loadFromDatabase(locale: Locale) {
+  const [rawProfile, map] = await Promise.all([
+    prisma.profile.findUnique({ where: { id: "main" } }),
+    loadTranslationMap(locale),
+  ]);
+  if (!rawProfile) return null;
+  const profileRow = localize("profile", rawProfile, map);
+  // Aplica o português (quando for o caso) em cada linha.
+  const tr =
+    <T extends { id: string }>(entity: string) =>
+    (row: T) =>
+      localize(entity, row, map);
 
   const [experiences, education, skillGroups, stats, process, aboutItems, awards, testimonials] = await Promise.all([
-    prisma.experience.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
-    prisma.education.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
-    prisma.skillGroup.findMany({ orderBy: { order: "asc" } }),
-    prisma.stat.findMany({ orderBy: { order: "asc" } }),
-    prisma.processStep.findMany({ orderBy: { order: "asc" } }),
-    prisma.aboutItem.findMany({ orderBy: { order: "asc" } }),
-    prisma.award.findMany({ orderBy: { order: "asc" } }),
-    prisma.testimonial.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
+    prisma.experience.findMany({ where: { visible: true }, orderBy: { order: "asc" } }).then((rows) => rows.map(tr("experience"))),
+    prisma.education.findMany({ where: { visible: true }, orderBy: { order: "asc" } }).then((rows) => rows.map(tr("education"))),
+    prisma.skillGroup.findMany({ orderBy: { order: "asc" } }).then((rows) => rows.map(tr("skillGroup"))),
+    prisma.stat.findMany({ orderBy: { order: "asc" } }).then((rows) => rows.map(tr("stat"))),
+    prisma.processStep.findMany({ orderBy: { order: "asc" } }).then((rows) => rows.map(tr("processStep"))),
+    prisma.aboutItem.findMany({ orderBy: { order: "asc" } }).then((rows) => rows.map(tr("aboutItem"))),
+    prisma.award.findMany({ orderBy: { order: "asc" } }).then((rows) => rows.map(tr("award"))),
+    prisma.testimonial
+      .findMany({ where: { visible: true }, orderBy: { order: "asc" } })
+      .then((rows) => rows.map(tr("testimonial"))),
   ]);
 
   const profile: Profile = {
@@ -157,13 +172,13 @@ async function loadFromDatabase() {
 
   return {
     profile,
-    experiences: experiences.map((row) => toExperienceItem(row)),
+    experiences: experiences.map((row) => toExperienceItem(row, {}, locale)),
     education: education.map((row) => ({
       id: row.id,
       institution: row.institution,
       course: row.course,
-      kind: row.kind,
-      period: formatPeriod(row.start, row.end, "em andamento"),
+      kind: educationKindLabel(row.kind, locale),
+      period: formatPeriod(row.start, row.end, UI[locale].period.inProgress),
       description: row.description,
     })),
     process: process.map(({ id, title, text }) => ({ id, title, text })),
@@ -185,20 +200,34 @@ async function loadFromDatabase() {
 
 type ContentData = NonNullable<Awaited<ReturnType<typeof loadFromDatabase>>>;
 
-// Uma consulta por requisição, mesmo que layout e página peçam o conteúdo.
-export const getSiteContent = cache(async (): Promise<SiteContent> => {
-  const [data, textRows] = await Promise.all([
-    loadFromDatabase().then((result) => result ?? defaultContent()),
-    prisma.siteText.findMany(),
-  ]);
+// Textos soltos no idioma pedido: inglês = tabela site_texts; português =
+// traduções. Sem valor gravado, valem os padrões de texts.ts.
+async function loadTexts(locale: Locale) {
+  const texts: Record<string, string> = { ...TEXT_DEFAULTS[locale] };
+  if (locale === "en") {
+    for (const row of await prisma.siteText.findMany()) texts[row.key] = row.value;
+  } else {
+    const map = await loadTranslationMap(locale);
+    for (const field of TEXT_FIELDS) {
+      const value = translatedText(map, field.key);
+      if (value !== undefined) texts[field.key] = value;
+    }
+  }
+  return texts;
+}
 
-  const texts: Record<string, string> = { ...TEXT_DEFAULTS };
-  for (const row of textRows) texts[row.key] = row.value;
+// Uma consulta por requisição e idioma, mesmo que layout e página peçam o conteúdo.
+export const getSiteContent = cache(async (locale: Locale = "en"): Promise<SiteContent> => {
+  const [data, texts] = await Promise.all([
+    loadFromDatabase(locale).then((result) => result ?? defaultContent()),
+    loadTexts(locale),
+  ]);
 
   const { stats, skillGroups, testimonialItems, ...rest } = data;
 
   return {
     ...rest,
+    locale,
     texts,
     hero: {
       eyebrow: texts["hero.eyebrow"],

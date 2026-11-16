@@ -20,6 +20,8 @@ export type ShowcaseProject = {
   outcome: string | null;
   videoUrl: string | null;
   highlighted: boolean;
+  // Tem senha (o hash nunca sai do servidor).
+  protected: boolean;
 };
 
 const toStringArray = (value: unknown) =>
@@ -48,5 +50,6 @@ export function toShowcaseProject(
     outcome: project.outcome,
     videoUrl: project.videoUrl,
     highlighted: overrides.highlighted ?? false,
+    protected: !!project.password,
   };
 }

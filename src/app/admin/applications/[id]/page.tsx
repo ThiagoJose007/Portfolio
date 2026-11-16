@@ -137,6 +137,17 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
                 </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
+                Idioma desta versão
+                <select name="locale" defaultValue={application.locale} className={inputClass}>
+                  <option value="en">Inglês</option>
+                  <option value="pt">Português</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-2 self-end pb-2 text-sm">
+                <input type="checkbox" name="unlockProtected" defaultChecked={application.unlockProtected} />
+                Abrir projetos com senha sem pedir a senha
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
                 Link expira em (opcional)
                 <input
                   type="date"

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteContent } from "@/lib/content/load";
+import { getLocale } from "@/lib/i18n/server";
+import { UI } from "@/lib/i18n/ui";
 import { SiteContentProvider } from "@/components/site/content-context";
 import { Cursor } from "@/components/site/cursor";
 import { MenuDock } from "@/components/site/menu/menu-dock";
@@ -12,13 +14,14 @@ import { PageTransition } from "@/components/site/transition/page-transition";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { profile } = await getSiteContent();
+  const locale = await getLocale();
+  const { profile } = await getSiteContent(locale);
   return {
     title: {
       default: `${profile.name} — ${profile.role}`,
       template: `%s — ${profile.name}`,
     },
-    description: `Portfolio de ${profile.name}, ${profile.role}.`,
+    description: UI[locale].meta.description(profile.name, profile.role),
   };
 }
 
@@ -26,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // ficam fora do #smooth-content: o ScrollSmoother aplica transform no
 // conteúdo, o que quebraria `position: fixed` lá dentro.
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const content = await getSiteContent();
+  const content = await getSiteContent(await getLocale());
 
   return (
     <SiteContentProvider content={content}>
