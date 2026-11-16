@@ -5,6 +5,8 @@ import { Field, SubmitButton } from "../_components/fields";
 import { deleteCollectionItem, moveCollectionItem } from "../conteudo/actions";
 import { createLinksFromProfile, resetLinkClicks, saveLinksSettings } from "./actions";
 import { LINKS_SETTINGS_FIELDS } from "./fields";
+import { PT_SUFFIX } from "../_components/field-defs";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,12 @@ export default async function AdminLinksPage({ searchParams }: { searchParams: P
     prisma.profile.findUnique({ where: { id: "main" } }),
     prisma.linkItem.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),
   ]);
+  const settingValues: Record<string, unknown> = { ...profile };
+  if (profile) {
+    for (const [field, value] of Object.entries(await getTranslations("profile", "main"))) {
+      settingValues[field + PT_SUFFIX] = value;
+    }
+  }
   const move = moveCollectionItem.bind(null, "links");
   const remove = deleteCollectionItem.bind(null, "links");
   const autoCards = profile
@@ -165,7 +173,7 @@ export default async function AdminLinksPage({ searchParams }: { searchParams: P
           {salvo && <p className="mb-4 rounded bg-green-50 p-3 text-sm text-green-700">Salvo.</p>}
           <form action={saveLinksSettings} className="flex flex-col gap-4">
             {LINKS_SETTINGS_FIELDS.map((field) => (
-              <Field key={field.name} field={field} value={profile[field.name as keyof typeof profile]} />
+              <Field key={field.name} field={field} values={settingValues} />
             ))}
             <SubmitButton>Salvar</SubmitButton>
           </form>

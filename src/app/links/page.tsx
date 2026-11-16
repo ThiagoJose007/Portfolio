@@ -3,6 +3,11 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getSiteContent } from "@/lib/content/load";
+import { getLocale } from "@/lib/i18n/server";
+import { loadTranslationMap, localize } from "@/lib/i18n/translations";
+import { UI } from "@/lib/i18n/ui";
+import type { Locale } from "@/lib/i18n/config";
+import { LocaleSwitch } from "@/components/site/locale-switch";
 import { LinkIcon, resolveIcon } from "@/lib/link-icons";
 import { TrackedLink } from "@/components/links/tracked-link";
 
@@ -11,16 +16,25 @@ import { TrackedLink } from "@/components/links/tracked-link";
 // está no celular. Tudo é editável em /admin/links.
 export const dynamic = "force-dynamic";
 
-async function loadSettings() {
-  const row = await prisma.profile.findUnique({
-    where: { id: "main" },
-    select: { linksPhoto: true, linksBio: true, linksShowCv: true, linksShowPortfolio: true },
-  });
-  return row ?? { linksPhoto: null, linksBio: "", linksShowCv: true, linksShowPortfolio: true };
+async function loadSettings(locale: Locale) {
+  const [row, map] = await Promise.all([
+    prisma.profile.findUnique({
+      where: { id: "main" },
+      select: { id: true, linksPhoto: true, linksBio: true, linksShowCv: true, linksShowPortfolio: true },
+    }),
+    loadTranslationMap(locale),
+  ]);
+  if (!row) return { linksPhoto: null, linksBio: "", linksShowCv: true, linksShowPortfolio: true };
+  return localize("profile", row, map);
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [{ profile }, settings, requestHeaders] = await Promise.all([getSiteContent(), loadSettings(), headers()]);
+  const locale = await getLocale();
+  const [{ profile }, settings, requestHeaders] = await Promise.all([
+    getSiteContent(locale),
+    loadSettings(locale),
+    headers(),
+  ]);
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
   const proto = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const photo = settings.linksPhoto || profile.photo;
@@ -74,11 +88,18 @@ type Card = {
 };
 
 export default async function LinksPage() {
+  const locale = await getLocale();
   const [{ profile }, settings, links] = await Promise.all([
-    getSiteContent(),
-    loadSettings(),
-    prisma.linkItem.findMany({ where: { visible: true }, orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),
+    getSiteContent(locale),
+    loadSettings(locale),
+    prisma.linkItem
+      .findMany({ where: { visible: true }, orderBy: [{ order: "asc" }, { createdAt: "asc" }] })
+      .then(async (rows) => {
+        const map = await loadTranslationMap(locale);
+        return rows.map((row) => localize("linkItem", row, map));
+      }),
   ]);
+  const ui = UI[locale];
   const photo = settings.linksPhoto || profile.photo;
 
   const cards: Card[] = links.map((link) => ({
@@ -96,8 +117,8 @@ export default async function LinksPage() {
     cards.push({
       key: "portfolio",
       id: "auto:portfolio",
-      title: "Portfolio",
-      description: "Projetos, experiência e contato",
+      title: ui.links.portfolioTitle,
+      description: ui.links.portfolioText,
       url: "/",
       icon: "briefcase",
       image: null,
@@ -109,8 +130,8 @@ export default async function LinksPage() {
     cards.push({
       key: "cv",
       id: "auto:cv",
-      title: "Currículo",
-      description: "PDF · baixar",
+      title: ui.links.cvTitle,
+      description: ui.links.cvText,
       url: profile.cvUrl,
       icon: "file",
       image: null,
@@ -142,7 +163,7 @@ export default async function LinksPage() {
                 <span className="relative inline-flex size-2 rounded-full bg-accent" />
               </span>
               <span className="hidden sm:inline">{profile.availability}</span>
-              <span className="sm:hidden">Disponível</span>
+              <span className="sm:hidden">{ui.links.available}</span>
             </p>
           </div>
           <div>
@@ -216,10 +237,10 @@ export default async function LinksPage() {
 
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
         <Link href="/" className="text-cream underline-offset-4 hover:underline">
-          Ver portfolio completo →
+          {ui.links.viewFull}
         </Link>
-        <span>
-          © {new Date().getFullYear()} {profile.name}
+        <span className="flex items-center gap-4">
+          <LocaleSwitch locale={locale} label={ui.nav.language} />© {new Date().getFullYear()} {profile.name}
         </span>
       </footer>
     </main>

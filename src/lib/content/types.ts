@@ -1,3 +1,4 @@
+import type { Locale } from "@/lib/i18n/config";
 import type { SceneShape, SkillGroup, Testimonial } from "@/content/site";
 
 // Formato serializável do conteúdo do site, montado no servidor
@@ -57,6 +58,7 @@ export type AwardItem = { id: string; title: string; issuer: string; project: st
 export type StatItem = { value: number; suffix: string; label: string };
 
 export type SiteContent = {
+  locale: Locale;
   profile: Profile;
   texts: Record<string, string>;
   hero: { eyebrow: string; title: string; intro: string; tags: string[] };

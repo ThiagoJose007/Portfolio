@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { ExperienceView, versionFromSlug, versionMetadata, type PageProps } from "@/components/site/views";
+import { ExperienceView, versionFromSlug, versionMetadata, pageTitle, type PageProps } from "@/components/site/views";
 
 type Props = PageProps & { params: Promise<{ version: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return versionMetadata(await versionFromSlug((await params).version, "/experiencia"), "Experiência");
+  return versionMetadata(await versionFromSlug((await params).version, "/experiencia"), await pageTitle("experience"));
 }
 
 export default async function VersionExperiencePage({ params, searchParams }: Props) {

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Field, SubmitButton } from "../../../_components/fields";
 import { getCollection, listPathOf, type Row } from "../../collections";
 import { saveCollectionItem } from "../../actions";
+import { PT_SUFFIX } from "../../../_components/field-defs";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,13 @@ export default async function CollectionItemPage({
   }
 
   const save = saveCollectionItem.bind(null, key, row?.id ?? null);
+  // Valores em inglês (a linha) + português ("<campo>__pt").
+  const values: Record<string, unknown> = { ...row };
+  if (row) {
+    for (const [field, value] of Object.entries(await getTranslations(collection.entity, row.id))) {
+      values[field + PT_SUFFIX] = value;
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl p-8">
@@ -35,7 +44,7 @@ export default async function CollectionItemPage({
       </h1>
       <form action={save} className="flex flex-col gap-4">
         {collection.fields.map((field) => (
-          <Field key={field.name} field={field} value={row?.[field.name]} />
+          <Field key={field.name} field={field} values={values} />
         ))}
         <SubmitButton>{isNew ? "Adicionar" : "Salvar alterações"}</SubmitButton>
       </form>

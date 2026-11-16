@@ -24,6 +24,14 @@ export default function NewApplicationPage() {
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
+          Idioma desta versão (escreva os textos abaixo nesse idioma)
+          <select name="locale" defaultValue="en" className="rounded border border-gray-300 px-3 py-2">
+            <option value="en">Inglês</option>
+            <option value="pt">Português</option>
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm">
           Texto de introdução (personalizado para essa empresa)
           <textarea
             name="introText"

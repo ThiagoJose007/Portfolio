@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import { afterReveal } from "../transition/navigation";
 
@@ -12,6 +12,7 @@ import { afterReveal } from "../transition/navigation";
 // tudo o que o RH precisa para decidir se continua lendo.
 export function AboutHero() {
   const { profile, texts } = useSiteContent();
+  const ui = useUi();
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -33,12 +34,12 @@ export function AboutHero() {
   );
 
   const facts = [
-    { label: "Carreira", value: profile.tldr.career },
-    { label: "Onde estou", value: profile.tldr.basedIn || profile.location },
-    { label: "Skillset", value: profile.tldr.skillset },
-    { label: "Experiência com", value: profile.tldr.experience },
-    { label: "Idiomas", value: profile.tldr.languages },
-    { label: "Status", value: profile.availability },
+    { label: ui.about.facts.career, value: profile.tldr.career },
+    { label: ui.about.facts.basedIn, value: profile.tldr.basedIn || profile.location },
+    { label: ui.about.facts.skillset, value: profile.tldr.skillset },
+    { label: ui.about.facts.experience, value: profile.tldr.experience },
+    { label: ui.about.facts.languages, value: profile.tldr.languages },
+    { label: ui.about.facts.status, value: profile.availability },
   ].filter((fact) => fact.value.trim());
   const linkedin = profile.socials.find((social) => /linkedin/i.test(social.label + social.href));
 
@@ -78,7 +79,7 @@ export function AboutHero() {
                 rel="noreferrer"
                 className="rounded-full bg-cream px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-accent"
               >
-                Baixar CV ↓
+                {ui.about.downloadCv}
               </a>
             )}
             {linkedin && (

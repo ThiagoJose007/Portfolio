@@ -1,6 +1,7 @@
-import type { FieldDef } from "../_components/field-defs";
+import { withTranslations, type FieldDef } from "../_components/field-defs";
+import { TRANSLATABLE } from "@/lib/i18n/translations";
 
-export const PROJECT_SECTIONS: { title: string; description?: string; fields: FieldDef[] }[] = [
+const SECTIONS: { title: string; description?: string; fields: FieldDef[] }[] = [
   {
     title: "Card",
     description: "O que aparece na vitrine de projetos.",
@@ -35,5 +36,22 @@ export const PROJECT_SECTIONS: { title: string; description?: string; fields: Fi
     ],
   },
 ];
+
+// Senha: não é coluna comum (vira hash), por isso fica fora de PROJECT_FIELDS.
+export const PASSWORD_FIELDS: FieldDef[] = [
+  {
+    name: "newPassword",
+    label: "Nova senha do estudo de caso",
+    type: "text",
+    placeholder: "Deixe vazio para manter como está",
+    help: "Com senha, o card aparece na vitrine, mas o estudo de caso pede a senha. Nas candidaturas que liberam projetos protegidos, abre direto.",
+  },
+  { name: "removePassword", label: "Remover a senha (deixar o projeto aberto)", type: "boolean" },
+];
+
+export const PROJECT_SECTIONS = SECTIONS.map((section) => ({
+  ...section,
+  fields: withTranslations(section.fields, TRANSLATABLE.project),
+}));
 
 export const PROJECT_FIELDS = PROJECT_SECTIONS.flatMap((section) => section.fields);

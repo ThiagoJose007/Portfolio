@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { buildChapters, getSiteContent } from "@/lib/content/load";
-import { getDefaultVersion, getVersionBySlug, trackVisit, type SiteVersion } from "@/lib/versions";
+import { getDefaultVersion as loadDefaultVersion, getVersionBySlug, trackVisit, type SiteVersion } from "@/lib/versions";
+import { getLocale } from "@/lib/i18n/server";
+import { UI } from "@/lib/i18n/ui";
+import { hasProjectAccess } from "@/lib/project-access";
+import { ProjectGate } from "./projects/project-gate";
 import { Hero } from "./sections/hero";
 import { PageIntro } from "./sections/page-intro";
 import { AboutSection } from "./sections/about-section";
@@ -24,26 +28,34 @@ import { ProjectCase } from "./projects/project-case";
 // Páginas do site, compartilhadas pela versão geral ("/…") e pelas versões
 // de candidatura ("/<slug>/…"). Os arquivos em app/(site) só escolhem a versão.
 
-export type PageProps = { searchParams: Promise<{ preview?: string }> };
+export type PageProps = { searchParams: Promise<{ preview?: string; acesso?: string }> };
 
 const isPreview = async (searchParams: PageProps["searchParams"]) => (await searchParams).preview === "1";
 
 // Resolve a versão de uma candidatura. O slug da versão geral redireciona
 // para o endereço sem slug; slug inexistente, arquivado ou expirado → 404.
 export async function versionFromSlug(slug: string, rest = "") {
-  const lookup = await getVersionBySlug(slug);
+  const lookup = await getVersionBySlug(slug, await getLocale());
   if (lookup.status === "default") redirect(rest || "/");
   if (lookup.status === "missing") notFound();
   return lookup.version;
 }
 
-export { getDefaultVersion };
+// Versão geral no idioma desta requisição.
+export async function getDefaultVersion() {
+  return loadDefaultVersion(await getLocale());
+}
+
+// Título da página no idioma da requisição (metadata das rotas).
+export async function pageTitle(page: "about" | "experience") {
+  return UI[await getLocale()].pages[page];
+}
 
 export async function versionMetadata(version: SiteVersion, title?: string): Promise<Metadata> {
   if (version.isDefault) return title ? { title } : {};
   // Versões de candidatura são privadas: fora dos buscadores.
   return {
-    title: title ? `${title} · ${version.companyName}` : `Para ${version.companyName}`,
+    title: title ? `${title} · ${version.companyName}` : (version.companyName ?? undefined),
     robots: { index: false, follow: false },
   };
 }
@@ -56,7 +68,7 @@ export async function HomeView({ version, searchParams }: { version: SiteVersion
       <ProjectsShowcase
         index="01"
         projects={version.projects}
-        title={version.companyName ? `Projetos para *${version.companyName}*` : undefined}
+        title={version.companyName ? UI[version.locale].showcase.projectsFor(version.companyName) : undefined}
       />
       <NextSteps />
       <ContactSection index="02" />
@@ -68,7 +80,7 @@ export async function HomeView({ version, searchParams }: { version: SiteVersion
 // além do trabalho → freelancer → depoimentos → contato.
 export async function AboutView({ version, searchParams }: { version: SiteVersion } & PageProps) {
   await trackVisit(version, await isPreview(searchParams));
-  const { testimonials, process } = await getSiteContent();
+  const { testimonials, process } = await getSiteContent(version.locale);
   const hasTestimonials = testimonials.items.length > 0;
   return (
     <>
@@ -88,11 +100,11 @@ export async function AboutView({ version, searchParams }: { version: SiteVersio
 // o objeto 3D muda a cada capítulo) → formação → prêmios → contato.
 export async function ExperienceView({ version, searchParams }: { version: SiteVersion } & PageProps) {
   await trackVisit(version, await isPreview(searchParams));
-  const { texts, education, awards } = await getSiteContent();
+  const { texts, education, awards } = await getSiteContent(version.locale);
   return (
     <>
       <PageIntro
-        eyebrow="Experiência"
+        eyebrow={UI[version.locale].pages.experience}
         title={texts["page.carreira.title"]}
         text={texts["page.carreira.text"]}
         scene={{ shape: 1, x: 0.4, scale: 0.95 }}
@@ -117,7 +129,26 @@ export async function ProjectView({
   searchParams,
 }: { version: SiteVersion; slug: string } & PageProps) {
   const { project, index } = findProject(version, slug);
-  await trackVisit(version, await isPreview(searchParams));
+  const params = await searchParams;
+  await trackVisit(version, params.preview === "1");
+
+  // Projeto com senha: nas candidaturas que liberam, abre direto; senão pede a senha.
+  if (project.protected && !version.unlockProtected && !(await hasProjectAccess(project.id))) {
+    const { profile } = await getSiteContent(version.locale);
+    return (
+      <>
+        <ProjectGate
+          project={project}
+          path={`${version.basePath}/projetos/${project.slug}`}
+          denied={params.acesso === "negado"}
+          email={profile.email}
+          ui={UI[version.locale]}
+        />
+        <ContactSection />
+      </>
+    );
+  }
+
   const next = version.projects.length > 1 ? version.projects[(index + 1) % version.projects.length] : null;
   return (
     <>

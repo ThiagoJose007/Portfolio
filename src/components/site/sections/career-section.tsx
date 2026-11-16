@@ -6,13 +6,14 @@ import { gsap } from "@/lib/gsap";
 import { usePinnedSteps } from "@/animations/use-pinned-steps";
 import { useSplitReveal } from "@/animations/use-split-reveal";
 import { Accent, Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { setScene } from "../scene/scene-store";
 
 // Storytelling da carreira (referência: storytelling.noomoagency.com): a seção
 // fica fixa, o objeto 3D muda de forma a cada capítulo e o texto ao lado troca.
 export function CareerSection({ index, chapters }: { index?: string; chapters: CareerChapter[] }) {
   const { career } = useSiteContent();
+  const ui = useUi();
   const rootRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -76,23 +77,23 @@ export function CareerSection({ index, chapters }: { index?: string; chapters: C
             <span data-career-count>01</span>
           </p>
           <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-            capítulo / {String(chapters.length).padStart(2, "0")}
+            {ui.career.chapter} / {String(chapters.length).padStart(2, "0")}
           </p>
         </div>
 
-        <div className="relative mt-14 space-y-16 md:absolute md:right-[7vw] md:top-1/2 md:mt-0 md:h-[44vh] md:w-[min(36vw,560px)] md:-translate-y-[30%] md:space-y-0">
+        <div className="relative mt-14 space-y-16 md:absolute md:right-[6vw] md:top-[33vh] md:mt-0 md:h-[54vh] md:w-[min(40vw,600px)] md:space-y-0">
           {chapters.map((chapter, i) => (
             <article key={i} data-step data-chapter className="md:absolute md:inset-0">
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
                 <span className="text-accent">{chapter.period}</span> · {chapter.role} · {chapter.place}
               </p>
-              <h3 className="mt-5 text-[clamp(2rem,3.4vw,3.6rem)] font-medium leading-[1] tracking-[-0.03em]">
+              <h3 className="mt-4 text-[clamp(1.8rem,2.7vw,2.9rem)] font-medium leading-[1.02] tracking-[-0.03em]">
                 <Accent text={chapter.title} />
               </h3>
-              <span className="my-7 block h-px w-full bg-gradient-to-r from-cream/40 to-transparent" />
-              <p className="max-w-md text-lg leading-relaxed text-cream/75">{chapter.text}</p>
+              <span className="my-5 block h-px w-full bg-gradient-to-r from-cream/40 to-transparent" />
+              <p className="max-w-lg text-base leading-relaxed text-cream/75 md:text-[17px]">{chapter.text}</p>
               {chapter.highlights && chapter.highlights.length > 0 && (
-                <ul className="mt-5 max-w-md space-y-1.5">
+                <ul className="mt-4 max-w-lg space-y-1.5 text-sm md:text-[15px]">
                   {chapter.highlights.slice(0, 3).map((highlight) => (
                     <li key={highlight} className="flex gap-3 text-cream/85">
                       <span aria-hidden className="mt-2 size-1.5 shrink-0 bg-accent" />

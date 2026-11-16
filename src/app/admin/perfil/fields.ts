@@ -1,6 +1,7 @@
-import type { FieldDef } from "../_components/field-defs";
+import { withTranslations, type FieldDef } from "../_components/field-defs";
+import { TRANSLATABLE } from "@/lib/i18n/translations";
 
-export const PROFILE_SECTIONS: { title: string; description?: string; fields: FieldDef[] }[] = [
+const SECTIONS: { title: string; description?: string; fields: FieldDef[] }[] = [
   {
     title: "Identificação",
     fields: [
@@ -61,5 +62,11 @@ export const PROFILE_SECTIONS: { title: string; description?: string; fields: Fi
     ],
   },
 ];
+
+// Campos de texto com versão em português marcados como traduzíveis.
+export const PROFILE_SECTIONS = SECTIONS.map((section) => ({
+  ...section,
+  fields: withTranslations(section.fields, TRANSLATABLE.profile),
+}));
 
 export const PROFILE_FIELDS = PROFILE_SECTIONS.flatMap((section) => section.fields);

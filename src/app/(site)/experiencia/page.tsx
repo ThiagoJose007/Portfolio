@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { ExperienceView, getDefaultVersion, type PageProps } from "@/components/site/views";
+import { ExperienceView, getDefaultVersion, pageTitle, type PageProps } from "@/components/site/views";
 
-export const metadata: Metadata = { title: "Experiência" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: await pageTitle("experience") };
+}
 
 export default async function ExperiencePage({ searchParams }: PageProps) {
   return <ExperienceView version={await getDefaultVersion()} searchParams={searchParams} />;

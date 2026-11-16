@@ -25,7 +25,10 @@ export default async function ProjectsPage() {
         {projects.map((project) => (
           <li key={project.id} className="flex items-center justify-between p-4">
             <div>
-              <p className="font-medium">{project.title}</p>
+              <p className="font-medium">
+                {project.title}
+                {project.password && <span className="ml-2 text-xs text-gray-500">🔒 com senha</span>}
+              </p>
               <p className="text-sm text-gray-500">{project.summary}</p>
               <p className="text-xs text-gray-400">/{project.slug}</p>
             </div>

@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getSiteContent } from "@/lib/content/load";
-import { readFields } from "../_components/field-defs";
+import { readFields, readTranslations } from "../_components/field-defs";
+import { saveTranslations } from "@/lib/i18n/translations";
 import { LINKS_SETTINGS_FIELDS } from "./fields";
 
 const refresh = () => {
@@ -26,6 +27,7 @@ export async function saveLinksSettings(formData: FormData) {
   const profile = await prisma.profile.findUnique({ where: { id: "main" } });
   if (!profile) throw new Error('Importe o conteúdo no Painel ("Importar conteúdo atual") antes de editar os links.');
   await prisma.profile.update({ where: { id: "main" }, data });
+  await saveTranslations("profile", "main", readTranslations(LINKS_SETTINGS_FIELDS, formData));
 
   refresh();
   redirect("/admin/links?salvo=1");

@@ -58,7 +58,10 @@ export default async function ApplicationsPage() {
                     `${application.companyName} — ${application.roleTitle}`
                   )}
                 </p>
-                <p className="text-xs text-gray-400">{application.isDefault ? "/" : `/${application.slug}`}</p>
+                <p className="text-xs text-gray-400">
+                  {application.isDefault ? "/" : `/${application.slug}`}
+                  {!application.isDefault && <span className="ml-2 uppercase">{application.locale}</span>}
+                </p>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500">
                 <span>

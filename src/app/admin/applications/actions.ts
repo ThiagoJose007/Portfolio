@@ -37,6 +37,7 @@ export async function createApplication(formData: FormData) {
       introText,
       ctaText,
       slug: buildApplicationSlug(companyName),
+      locale: formData.get("locale") === "pt" ? "pt" : "en",
     },
   });
 
@@ -65,11 +66,13 @@ export async function updateApplication(applicationId: string, formData: FormDat
     throw new Error("Empresa, vaga e texto de introdução são obrigatórios.");
   }
 
+  const locale = formData.get("locale") === "pt" ? "pt" : "en";
+  const unlockProtected = formData.get("unlockProtected") === "on";
   await prisma.application.update({
     where: { id: applicationId },
     data: current.isDefault
       ? { introText, ctaText }
-      : { companyName, roleTitle, introText, ctaText, status, expiresAt },
+      : { companyName, roleTitle, introText, ctaText, status, expiresAt, locale, unlockProtected },
   });
 
   refresh(applicationId);

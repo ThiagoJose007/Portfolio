@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useReveal } from "@/animations/use-reveal";
 import type { AwardItem, EducationItem, SimpleItem } from "@/lib/content/types";
 import { Accent, Eyebrow } from "../accent";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { useSceneSection } from "../scene/use-scene-section";
 import type { SceneTarget } from "../scene/scene-store";
 
@@ -46,10 +46,11 @@ function Section({
 }
 
 export function ProcessSection({ index, steps }: { index?: string; steps: SimpleItem[] }) {
+  const ui = useUi();
   const { texts } = useSiteContent();
   if (steps.length === 0) return null;
   return (
-    <Section index={index} label="Processo" title={texts["process.title"]} scene={{ shape: 2, x: 0.5, scale: 0.7, opacity: 0.35 }}>
+    <Section index={index} label={ui.sections.process} title={texts["process.title"]} scene={{ shape: 2, x: 0.5, scale: 0.7, opacity: 0.35 }}>
       <ol className="grid gap-px overflow-hidden rounded-3xl border border-cream/10 bg-cream/10 md:grid-cols-2 xl:grid-cols-4">
         {steps.map((step, i) => (
           <li key={step.id} data-reveal className="flex flex-col gap-6 bg-ink p-7 md:p-8">
@@ -83,6 +84,7 @@ const GRID_COLS: Record<number, string> = { 1: "md:grid-cols-1", 2: "md:grid-col
 
 // Valores, hobbies e "o que busco" (slides "About me" do deck).
 export function BeyondSection({ index }: { index?: string }) {
+  const ui = useUi();
   const { texts, values, hobbies, goals } = useSiteContent();
   const columns = [
     { label: texts["beyond.goals"], items: goals },
@@ -91,7 +93,7 @@ export function BeyondSection({ index }: { index?: string }) {
   ].filter((column) => column.items.length > 0);
   if (columns.length === 0) return null;
   return (
-    <Section index={index} label="Além do currículo" title={texts["beyond.title"]} scene={{ shape: 0, x: -0.5, scale: 0.6, opacity: 0.4 }}>
+    <Section index={index} label={ui.sections.beyond} title={texts["beyond.title"]} scene={{ shape: 0, x: -0.5, scale: 0.6, opacity: 0.4 }}>
       <div className={`grid gap-10 ${GRID_COLS[columns.length]}`}>
         {columns.map((column) => (
           <div key={column.label} data-reveal>
@@ -105,10 +107,11 @@ export function BeyondSection({ index }: { index?: string }) {
 }
 
 export function FreelanceSection({ index }: { index?: string }) {
+  const ui = useUi();
   const { profile, freelance, services } = useSiteContent();
   if (!profile.freelanceEnabled || (services.length === 0 && !freelance.text.trim())) return null;
   return (
-    <Section index={index} label="Freelancer" title={freelance.title}>
+    <Section index={index} label={ui.sections.freelance} title={freelance.title}>
       <div className="grid gap-10 md:grid-cols-12">
         {freelance.text && (
           <p data-reveal className="whitespace-pre-line text-lg text-cream/80 md:col-span-5">
@@ -126,10 +129,11 @@ export function FreelanceSection({ index }: { index?: string }) {
 }
 
 export function EducationSection({ index, items }: { index?: string; items: EducationItem[] }) {
+  const ui = useUi();
   const { texts } = useSiteContent();
   if (items.length === 0) return null;
   return (
-    <Section index={index} label="Formação" title={texts["education.title"]} scene={{ shape: 3, x: 0.5, scale: 0.6, opacity: 0.35 }}>
+    <Section index={index} label={ui.sections.education} title={texts["education.title"]} scene={{ shape: 3, x: 0.5, scale: 0.6, opacity: 0.35 }}>
       <ul className="divide-y divide-cream/12 border-y border-cream/12">
         {items.map((item) => (
           <li key={item.id} data-reveal className="grid gap-2 py-6 md:grid-cols-12 md:gap-6">
@@ -149,10 +153,11 @@ export function EducationSection({ index, items }: { index?: string; items: Educ
 }
 
 export function AwardsSection({ index, items }: { index?: string; items: AwardItem[] }) {
+  const ui = useUi();
   const { texts } = useSiteContent();
   if (items.length === 0) return null;
   return (
-    <Section index={index} label="Prêmios" title={texts["awards.title"]}>
+    <Section index={index} label={ui.sections.awards} title={texts["awards.title"]}>
       <ul className="grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <li key={item.id} data-reveal className="flex gap-5 rounded-[24px] border border-cream/12 p-6">

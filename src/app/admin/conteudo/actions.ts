@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { readFields } from "../_components/field-defs";
+import { readFields, readTranslations } from "../_components/field-defs";
+import { deleteTranslations, saveTranslations } from "@/lib/i18n/translations";
 import { getCollection, listPathOf } from "./collections";
 
 function collectionOrThrow(key: string) {
@@ -22,13 +23,15 @@ export async function saveCollectionItem(key: string, id: string | null, formDat
   const model = collection.delegate();
   const data = readFields(collection.fields, formData);
 
+  let savedId = id;
   if (id) {
     await model.update({ where: { id }, data });
   } else {
     // Novos itens entram no fim da lista.
     const last = await model.findFirst({ where: collection.scope, orderBy: { order: "desc" } });
-    await model.create({ data: { ...data, ...collection.scope, order: (last?.order ?? -1) + 1 } });
+    savedId = (await model.create({ data: { ...data, ...collection.scope, order: (last?.order ?? -1) + 1 } })).id;
   }
+  if (savedId) await saveTranslations(collection.entity, savedId, readTranslations(collection.fields, formData));
 
   refresh(key);
   redirect(listPathOf(collection));
@@ -37,7 +40,9 @@ export async function saveCollectionItem(key: string, id: string | null, formDat
 export async function deleteCollectionItem(key: string, formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await collectionOrThrow(key).delegate().delete({ where: { id } });
+  const collection = collectionOrThrow(key);
+  await collection.delegate().delete({ where: { id } });
+  await deleteTranslations(collection.entity, id);
   refresh(key);
 }
 

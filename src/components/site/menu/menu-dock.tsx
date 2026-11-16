@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { useSiteContent } from "../content-context";
+import { useSiteContent, useUi } from "../content-context";
 import { MENU_CLOSE_EVENT } from "../transition/navigation";
 import { TransitionLink } from "../transition/transition-link";
-import { pageLabel, useSitePaths } from "../version-path";
+import { pageKey, useSitePaths } from "../version-path";
+import { LocaleSwitch } from "../locale-switch";
 
 const RING_RADIUS = 50;
 // A partir daqui (px de scroll) o menu se fecha no círculo.
@@ -45,7 +46,8 @@ type NavLink = { label: string; href: string; active?: boolean; external?: boole
 // No desktop ele começa aberto no topo da página e se fecha no círculo ao
 // rolar; clicar no círculo abre/fecha a qualquer momento.
 export function MenuDock() {
-  const { profile } = useSiteContent();
+  const { profile, locale } = useSiteContent();
+  const ui = useUi();
   const { pathname, home, about, experience } = useSitePaths();
   const [open, setOpen] = useState(false);
 
@@ -57,12 +59,12 @@ export function MenuDock() {
   const openedAt = useRef(0);
 
   const links: NavLink[] = [
-    ...(pathname === home ? [] : [{ label: "Início", href: home }]),
-    { label: "Projetos", href: `${home}#projetos` },
-    { label: "Sobre mim", href: about, active: pathname === about },
-    { label: "Experiência", href: experience, active: pathname === experience },
-    { label: "Contato", href: "#contato" },
-    ...(profile.cvUrl ? [{ label: "Baixar CV ↓", href: profile.cvUrl, external: true }] : []),
+    ...(pathname === home ? [] : [{ label: ui.nav.home, href: home }]),
+    { label: ui.nav.projects, href: `${home}#projetos` },
+    { label: ui.nav.about, href: about, active: pathname === about },
+    { label: ui.nav.experience, href: experience, active: pathname === experience },
+    { label: ui.nav.contact, href: "#contato" },
+    ...(profile.cvUrl ? [{ label: ui.nav.downloadCv, href: profile.cvUrl, external: true }] : []),
   ];
 
   const { contextSafe } = useGSAP(
@@ -202,12 +204,17 @@ export function MenuDock() {
     <div ref={rootRef}>
       {/* Desktop: pílula com as páginas, centralizada no topo. */}
       <nav
-        aria-label="Navegação principal"
+        aria-label={locale === "pt" ? "Navegação principal" : "Main navigation"}
         inert={!open}
         className="fixed left-1/2 top-5 z-50 hidden h-14 w-max -translate-x-1/2 items-center md:flex"
       >
         <span className="menu-pill invisible absolute inset-x-0 top-1/2 h-[52px] -translate-y-1/2 rounded-full border border-cream/10 bg-[#1b1b1f]/80 backdrop-blur-xl" />
-        <ul className="menu-side invisible relative flex items-center gap-0.5 px-1.5">{links.map(renderItem)}</ul>
+        <ul className="menu-side invisible relative flex items-center gap-0.5 px-1.5">
+          {links.map(renderItem)}
+          <li className="nav-item ml-1 border-l border-cream/15 pl-1.5">
+            <LocaleSwitch locale={locale} label={ui.nav.language} />
+          </li>
+        </ul>
       </nav>
 
       {/* Círculo: sempre no canto superior direito (vira X quando aberto). */}
@@ -217,14 +224,14 @@ export function MenuDock() {
             type="button"
             aria-expanded={open}
             aria-controls="menu-drop"
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            aria-label={open ? ui.nav.closeMenu : ui.nav.openMenu}
             onClick={() => setOpen((value) => !value)}
             onPointerMove={onButtonMove}
             onPointerLeave={onButtonOut}
             className="relative grid size-14 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-cream"
           >
             <span className="menu-magnet absolute -inset-4 text-cream mix-blend-difference">
-              <RingText text={`MENU · ${pageLabel(pathname).toUpperCase()} · `} />
+              <RingText text={`${ui.nav.menu} · ${(pageKey(pathname) === "home" ? ui.nav.home : ui.nav[pageKey(pathname)]).toUpperCase()} · `} />
             </span>
             <span className="menu-magnet absolute inset-0 grid place-items-center">
               <span className="absolute inset-0 rounded-full bg-accent shadow-[0_8px_30px_rgba(255,95,46,0.35)]" />
@@ -242,7 +249,12 @@ export function MenuDock() {
           className="menu-drop invisible absolute right-0 top-[calc(100%+18px)] w-56 md:hidden"
         >
           <span className="menu-drop-bg absolute inset-0 origin-top-right rounded-[24px] border border-cream/10 bg-[#1b1b1f]/95 backdrop-blur-xl" />
-          <ul className="relative flex flex-col gap-0.5 p-2 text-center">{links.map(renderItem)}</ul>
+          <ul className="relative flex flex-col gap-0.5 p-2 text-center">
+            {links.map(renderItem)}
+            <li className="nav-item flex justify-center border-t border-cream/10 pt-2">
+              <LocaleSwitch locale={locale} label={ui.nav.language} />
+            </li>
+          </ul>
         </div>
       </div>
     </div>

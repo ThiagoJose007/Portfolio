@@ -29,6 +29,8 @@ model Project {
   process     String?
   outcome     String?
   videoUrl    String?
+  // Senha do estudo de caso (hash scrypt). Vazio = aberto.
+  password    String?
   visible     Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -39,21 +41,25 @@ model Project {
 }
 
 model Application {
-  id            String            @id @default(uuid())
-  companyName   String
-  roleTitle     String
-  slug          String            @unique
-  introText     String
-  ctaText       String?
-  status        ApplicationStatus @default(DRAFT)
-  expiresAt     DateTime?
+  id              String            @id @default(uuid())
+  companyName     String
+  roleTitle       String
+  slug            String            @unique
+  introText       String
+  ctaText         String?
+  status          ApplicationStatus @default(DRAFT)
+  expiresAt       DateTime?
   // Versão geral: servida em "/" para quem não tem link de candidatura.
-  isDefault     Boolean           @default(false)
-  viewCount     Int               @default(0)
-  firstViewedAt DateTime?
-  lastViewedAt  DateTime?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  isDefault       Boolean           @default(false)
+  // Idioma da versão ("en" | "pt"). O visitante ainda pode trocar no menu.
+  locale          String            @default("en")
+  // Projetos com senha abrem direto nesta versão (o link já é privado).
+  unlockProtected Boolean           @default(true)
+  viewCount       Int               @default(0)
+  firstViewedAt   DateTime?
+  lastViewedAt    DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   projects    ApplicationProject[]
   experiences ApplicationExperience[]
@@ -281,4 +287,20 @@ model LinkItem {
   updatedAt   DateTime @updatedAt
 
   @@map("links")
+}
+
+// Versões em português dos textos editáveis. Os campos das tabelas guardam o
+// inglês (idioma principal); aqui fica o português, por entidade/campo.
+// entity: "profile" | "text" | "experience" | "project" | ... (ver src/lib/i18n)
+model Translation {
+  id       String @id @default(uuid())
+  entity   String
+  entityId String
+  field    String
+  locale   String
+  value    String
+
+  @@unique([entity, entityId, field, locale])
+  @@index([locale])
+  @@map("translations")
 }
